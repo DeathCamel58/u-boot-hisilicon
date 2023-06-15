@@ -35,7 +35,7 @@
 #include <watchdog.h>
 
 #include <u-boot/md5.h>
-#include <sha1.h>
+#include <u-boot/sha1.h>
 
 #ifdef	CMD_MEM_DEBUG
 #define	PRINTF(fmt,args...)	printf (fmt ,##args)

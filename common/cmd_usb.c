@@ -525,6 +525,8 @@ int do_usb(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 		 (strncmp(argv[1], "start", 5) == 0)) {
 		usb_stop();
 		printf("(Re)start USB...\n");
+		i = usb_init_debug(); //FIXME
+		wait_ms(1000);
 		i = usb_init();
 #ifdef CONFIG_USB_STORAGE
 		/* try to recognize storage devices immediately */

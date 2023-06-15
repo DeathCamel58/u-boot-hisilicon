@@ -643,6 +643,7 @@ void	panic(const char *fmt, ...)
 int	sprintf(char * buf, const char *fmt, ...)
 		__attribute__ ((format (__printf__, 2, 3)));
 int	vsprintf(char *buf, const char *fmt, va_list args);
+char *ultohstr(unsigned long long size);
 
 /* lib/strmhz.c */
 char *	strmhz(char *buf, long hz);
@@ -696,6 +697,9 @@ void	fputc(int file, const char c);
 int	ftstc(int file);
 int	fgetc(int file);
 
+void add_shutdown(void (*shutdown)(void));
+void do_shutdown(void);
+
 /*
  * CONSOLE multiplexing.
  */
@@ -720,6 +724,14 @@ int cpu_reset(int nr);
 int cpu_disable(int nr);
 int cpu_release(int nr, int argc, char *argv[]);
 #endif
+
+#define BOOT_MEDIA_UNKNOW         (0)
+#define BOOT_MEDIA_DDR            (1)
+#define BOOT_MEDIA_NAND           (2)
+#define BOOT_MEDIA_SPIFLASH       (3)
+#define BOOT_MEDIA_EMMC           (4)
+/* get uboot start media. */
+int get_boot_media(void);
 
 #endif /* __ASSEMBLY__ */
 

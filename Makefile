@@ -212,8 +212,13 @@ LIBS += drivers/mtd/nand/libnand.a
 LIBS += drivers/mtd/onenand/libonenand.a
 LIBS += drivers/mtd/ubi/libubi.a
 LIBS += drivers/mtd/spi/libspi_flash.a
+LIBS += drivers/mtd/spi/hisfc350/libhisfcv350.a
+LIBS += drivers/mtd/spi/hisfc300new/libhisfcv300new.a
 LIBS += drivers/net/libnet.a
 LIBS += drivers/net/phy/libphy.a
+LIBS += drivers/net/hisfv300/libhisfv300.a
+LIBS += drivers/net/higmac/libhigmac.a
+LIBS += drivers/net/stmmac/libstmmac.a
 LIBS += drivers/pci/libpci.a
 LIBS += drivers/pcmcia/libpcmcia.a
 LIBS += drivers/power/libpower.a
@@ -235,6 +240,7 @@ LIBS += drivers/serial/libserial.a
 LIBS += drivers/twserial/libtws.a
 LIBS += drivers/usb/gadget/libusb_gadget.a
 LIBS += drivers/usb/host/libusb_host.a
+LIBS += drivers/usb/host/hiusb/libhiusb.a
 LIBS += drivers/usb/musb/libusb_musb.a
 LIBS += drivers/usb/phy/libusb_phy.a
 LIBS += drivers/video/libvideo.a
@@ -243,6 +249,10 @@ LIBS += common/libcommon.a
 LIBS += lib/libfdt/libfdt.a
 LIBS += api/libapi.a
 LIBS += post/libpost.a
+LIBS += product/libproduct.a
+LIBS += product/hiupdate/libhiupdate.a
+LIBS += product/hiddrtv200/libhiddrtv200.a
+sinclude Makefile-osd
 
 LIBS := $(addprefix $(obj),$(LIBS))
 .PHONY : $(LIBS) $(TIMESTAMP_FILE) $(VERSION_FILE)
@@ -301,6 +311,12 @@ $(obj)u-boot.srec:	$(obj)u-boot
 
 $(obj)u-boot.bin:	$(obj)u-boot
 		$(OBJCOPY) ${OBJCFLAGS} -O binary $< $@
+
+.PHONY: mini-boot.bin
+mini-boot.bin: $(TOPDIR)/full-boot.bin
+	make -C $(TOPDIR)/arch/$(ARCH)/cpu/$(CPU)/compressed \
+		CROSS_COMPILE=$(CROSS_COMPILE) \
+		BINIMAGE=$(TOPDIR)/full-boot.bin TOPDIR=$(TOPDIR)
 
 $(obj)u-boot.ldr:	$(obj)u-boot
 		$(CREATE_LDR_ENV)
@@ -3195,6 +3211,40 @@ s5p_goni_config:	unconfig
 
 smdkc100_config:	unconfig
 	@$(MKCONFIG) $(@:_config=) arm arm_cortexa8 smdkc100 samsung s5pc1xx
+
+hi3518a_config: unconfig
+	@$(MKCONFIG) hi3518a arm hi3518 hi3518 NULL hi3518
+
+hi3518c_config: unconfig
+	@$(MKCONFIG) hi3518c arm hi3518 hi3518 NULL hi3518
+
+hi3516c_config: unconfig
+	@$(MKCONFIG) hi3516c arm hi3518 hi3518 NULL hi3518
+
+hi3520d_config: unconfig
+	@$(MKCONFIG) $(@:_config=) arm hi3520d hi3520d NULL hi3520d
+
+godarm_config:	unconfig
+	@$(MKCONFIG) $(@:_config=) arm godarm godarm NULL godarm
+
+godcare_config:	unconfig
+	@$(MKCONFIG) $(@:_config=) arm godarm godarm NULL godarm
+
+godcube_config: unconfig
+	@$(MKCONFIG) $(@:_config=) arm godcube godcube NULL godcube
+
+godnet_config: unconfig
+	@$(MKCONFIG) $(@:_config=) arm godnet godnet NULL godnet
+
+godbox_config: unconfig
+	@$(MKCONFIG) $(@:_config=) arm godbox godbox 
+
+godeyes_config: unconfig
+	@$(MKCONFIG) $(@:_config=) arm godeyes godeyes NULL godeyes
+
+godbox-v1_config: unconfig
+	@$(MKCONFIG) $(@:_config=) arm godbox-v1 godbox-v1
+
 
 #########################################################################
 ## XScale Systems

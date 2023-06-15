@@ -170,6 +170,7 @@ int usb_kbd_deregister(void);
 #endif
 /* routines */
 int usb_init(void); /* initialize the USB Controller */
+int usb_init_debug(void); /* FIXME: initialize the USB Controller */
 int usb_stop(void); /* stop the USB Controller */
 
 

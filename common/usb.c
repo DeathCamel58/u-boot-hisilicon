@@ -77,6 +77,7 @@ char usb_started; /* flag for the started/stopped USB status */
  * some forward declerations...
  */
 void usb_scan_devices(void);
+void usb_scan_devices_debug(void);
 
 int usb_hub_probe(struct usb_device *dev, int ifnum);
 void usb_hub_reset(void);
@@ -87,7 +88,7 @@ static int hub_port_reset(struct usb_device *dev, int port,
  * wait_ms
  */
 
-inline void wait_ms(unsigned long ms)
+void wait_ms(unsigned long ms)
 {
 	while (ms-- > 0)
 		udelay(1000);
@@ -123,6 +124,28 @@ int usb_init(void)
 	}
 }
 
+int usb_init_debug(void)
+{
+	int result;
+
+	running = 0;
+	dev_index = 0;
+	asynch_allowed = 1;
+	usb_hub_reset();
+	/* init low_level USB */
+	result = usb_lowlevel_init();
+	/* if lowlevel init is OK, scan the bus for devices
+	 * i.e. search HUBs and configure them */
+	if (result == 0) {
+		running = 1;
+		usb_scan_devices_debug();
+		usb_started = 1;
+		return 0;
+	} else {
+		usb_started = 0;
+		return -1;
+	}
+}
 /******************************************************************************
  * Stop USB this stops the LowLevel Part and deregisters USB devices.
  */
@@ -954,6 +977,25 @@ void usb_scan_devices(void)
 #endif
 }
 
+void usb_scan_devices_debug(void)
+{
+	int i;
+	struct usb_device *dev;
+
+	/* first make all devices unknown */
+	for (i = 0; i < USB_MAX_DEVICE; i++) {
+		memset(&usb_dev[i], 0, sizeof(struct usb_device));
+		usb_dev[i].devnum = -1;
+	}
+	dev_index = 0;
+	/* device 0 is always present (root hub, so let it analyze) */
+	dev = usb_alloc_new_device();
+	/* insert "driver" if possible */
+#ifdef CONFIG_USB_KEYBOARD
+	drv_usb_kbd_init();
+	USB_PRINTF("scan end\n");
+#endif
+}
 
 /****************************************************************************
  * HUB "Driver"

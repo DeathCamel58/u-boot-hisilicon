@@ -1402,6 +1402,10 @@ int usb_stor_get_info(struct usb_device *dev, struct us_data *ss,
 	cap[0] += 1;
 	capacity = &cap[0];
 	blksz = &cap[1];
+	//FIXME: old bug fix AE6D03828
+	printf("%s->%d,blksz:%lu\n",__func__,__LINE__,*blksz);
+	if (*blksz != 512)
+		return 0;
 	USB_STOR_PRINTF("Capacity = 0x%lx, blocksz = 0x%lx\n",
 			*capacity, *blksz);
 	dev_desc->lba = *capacity;

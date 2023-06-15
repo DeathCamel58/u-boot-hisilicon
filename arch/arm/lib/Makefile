@@ -35,10 +35,12 @@ GLSOBJS	+= _udivsi3.o
 GLSOBJS	+= _umodsi3.o
 
 GLCOBJS	+= div0.o
+SOBJS-y	+= mmu.o
 
 COBJS-y	+= board.o
 COBJS-y	+= bootm.o
 COBJS-y	+= cache.o
+COBJS-y	+= process.o
 ifndef CONFIG_SYS_NO_CP15_CACHE
 COBJS-y	+= cache-cp15.o
 endif

@@ -47,8 +47,7 @@ DECLARE_GLOBAL_DATA_PTR;
 /*
  * Board-specific Platform code can reimplement show_boot_progress () if needed
  */
-void inline __show_boot_progress (int val) {}
-void show_boot_progress (int val) __attribute__((weak, alias("__show_boot_progress")));
+__attribute__((weak)) void show_boot_progress(int val) {}
 
 #if defined(CONFIG_BOOT_RETRY_TIME) && defined(CONFIG_RESET_TO_RETRY)
 extern int do_reset (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[]);		/* for do_reset() prototype */
@@ -479,10 +478,8 @@ void main_loop (void)
 		else
 			rc = run_command (lastcommand, flag);
 
-		if (rc <= 0) {
 			/* invalid command or not repeatable, forget it */
 			lastcommand[0] = 0;
-		}
 	}
 #endif /*CONFIG_SYS_HUSH_PARSER*/
 }
@@ -966,13 +963,12 @@ int readline_into_buffer (const char *const prompt, char * buffer)
 	 * Revert to non-history version if still
 	 * running from flash.
 	 */
-	if (gd->flags & GD_FLG_RELOC) {
+	if ((gd->flags & GD_FLG_RELOC)||(gd->flags & GD_FLG_DEVINIT)) {
 		if (!initted) {
 			hist_init();
 			initted = 1;
 		}
 
-		if (prompt)
 			puts (prompt);
 
 		rc = cread_line(prompt, p, &len);

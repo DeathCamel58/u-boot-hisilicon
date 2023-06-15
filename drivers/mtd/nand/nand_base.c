@@ -512,11 +512,12 @@ void nand_wait_ready(struct mtd_info *mtd)
 {
 	struct nand_chip *chip = mtd->priv;
 	u32 timeo = (CONFIG_SYS_HZ * 20) / 1000;
+	u32 time_start;
 
-	reset_timer();
+	time_start = get_timer(0);
 
 	/* wait until command is processed or timeout occures */
-	while (get_timer(0) < timeo) {
+	while (get_timer(time_start) < timeo) {
 		if (chip->dev_ready)
 			if (chip->dev_ready(mtd))
 				break;
@@ -852,6 +853,7 @@ static int nand_wait(struct mtd_info *mtd, struct nand_chip *this)
 {
 	unsigned long	timeo;
 	int state = this->state;
+	u32 time_start;
 
 	if (state == FL_ERASING)
 		timeo = (CONFIG_SYS_HZ * 400) / 1000;
@@ -863,10 +865,10 @@ static int nand_wait(struct mtd_info *mtd, struct nand_chip *this)
 	else
 		this->cmdfunc(mtd, NAND_CMD_STATUS, -1, -1);
 
-	reset_timer();
+	time_start = get_timer(0);
 
 	while (1) {
-		if (get_timer(0) > timeo) {
+		if (get_timer(time_start) > timeo) {
 			printf("Timeout!");
 			return 0x01;
 		}
@@ -880,8 +882,9 @@ static int nand_wait(struct mtd_info *mtd, struct nand_chip *this)
 		}
 	}
 #ifdef PPCHAMELON_NAND_TIMER_HACK
-	reset_timer();
-	while (get_timer(0) < 10);
+	time_start = get_timer(0);
+	while (get_timer(time_start) < 10)
+		;
 #endif /*  PPCHAMELON_NAND_TIMER_HACK */
 
 	return this->read_byte(mtd);
@@ -2597,6 +2600,19 @@ static void nand_set_defaults(struct nand_chip *chip, int busw)
 
 }
 
+struct nand_flash_dev *(*nand_base_get_special_flash_type)(struct mtd_info *mtd,
+	struct nand_chip *chip, unsigned char byte[8]) = NULL;
+
+int (*nand_base_oob_resize)(struct mtd_info *mtd, 
+	struct nand_chip *chip, char *args) = NULL;
+
+static struct mtd_info_ex nand_info_ex = {.type = 0, };
+
+struct mtd_info_ex * get_nand_info(void)
+{
+	return &nand_info_ex;
+}
+
 /*
  * Get the flash and manufacturer id and lookup if the type is supported
  */
@@ -2607,6 +2623,8 @@ static struct nand_flash_dev *nand_get_flash_type(struct mtd_info *mtd,
 	struct nand_flash_dev *type = NULL;
 	int i, dev_id, maf_idx;
 	int tmp_id, tmp_manf;
+	int ecctype = -1;
+	unsigned char byte[8] = {0};
 
 	/* Select the device */
 	chip->select_chip(mtd, 0);
@@ -2642,6 +2660,27 @@ static struct nand_flash_dev *nand_get_flash_type(struct mtd_info *mtd,
 		       "%02x,%02x against %02x,%02x\n", __func__,
 		       *maf_id, dev_id, tmp_manf, tmp_id);
 		return ERR_PTR(-ENODEV);
+	}
+
+	/*
+	 * some nand, the id bytes signification is nonstandard 
+	 * with the linux kernel.
+	 */
+	byte[0] = tmp_manf;
+	byte[1] = tmp_id;
+	if (nand_base_get_special_flash_type 
+		&& ((type = nand_base_get_special_flash_type(mtd, chip, byte)) != NULL))
+	{
+		if (!mtd->name)
+			mtd->name = type->name;
+
+		chip->chipsize = (uint64_t)type->chipsize << 20;
+		mtd->erasesize = type->erasesize;
+		mtd->writesize = type->pagesize;
+		mtd->oobsize   = *(unsigned long *)&type[1];
+		busw = (type->options & NAND_BUSWIDTH_16);
+
+		goto find_type;
 	}
 
 	/* Lookup the flash id */
@@ -2689,6 +2728,17 @@ static struct nand_flash_dev *nand_get_flash_type(struct mtd_info *mtd,
 		busw = type->options & NAND_BUSWIDTH_16;
 	}
 
+	/*
+	 * the flash oobsize maybe larger than error correct request oobsize,
+	 * so I resize oobsize.
+	 */
+find_type:
+	if (nand_base_oob_resize)
+	{
+		if (nand_base_oob_resize(mtd, chip, (char *)&ecctype))
+			return ERR_PTR(-ENODEV);
+	}
+
 	/* Try to identify manufacturer */
 	for (maf_idx = 0; nand_manuf_ids[maf_idx].id != 0x0; maf_idx++) {
 		if (nand_manuf_ids[maf_idx].id == *maf_id)
@@ -2707,6 +2757,25 @@ static struct nand_flash_dev *nand_get_flash_type(struct mtd_info *mtd,
 		       (chip->options & NAND_BUSWIDTH_16) ? 16 : 8,
 		       busw ? 16 : 8);
 		return ERR_PTR(-EINVAL);
+	}
+
+	if (nand_info_ex.type == 0)
+	{
+		memset(&nand_info_ex, 0, sizeof(struct mtd_info_ex));
+
+		nand_info_ex.type      = MTD_NANDFLASH;
+		nand_info_ex.chipsize  = chip->chipsize;
+		nand_info_ex.erasesize = mtd->erasesize;
+		nand_info_ex.pagesize  = mtd->writesize;
+		nand_info_ex.oobsize   = mtd->oobsize; /* smaller than nand chip space area */
+		nand_info_ex.ecctype   = ecctype;
+		nand_info_ex.id_length = 8;
+		nand_info_ex.numchips  = 1;
+
+		memcpy(nand_info_ex.ids, byte, 8);
+
+		strncpy(nand_info_ex.name, mtd->name, sizeof(nand_info_ex.name));
+		nand_info_ex.name[sizeof(nand_info_ex.name)-1] = '\0';
 	}
 
 	/* Calculate the address shift from the page size */
@@ -2809,6 +2878,19 @@ int nand_scan_ident(struct mtd_info *mtd, int maxchips)
 	/* Store the number of chips and calc total size for mtd */
 	chip->numchips = i;
 	mtd->size = i * chip->chipsize;
+
+	if (nand_info_ex.type != MTD_NANDFLASH) {
+		BUG ();
+	}
+	nand_info_ex.numchips = chip->numchips;
+
+	printk("Block:%sB ", ultohstr(mtd->erasesize));
+	printk("Page:%sB ",  ultohstr(mtd->writesize));
+	printk("Chip:%sB*%d ",  ultohstr(chip->chipsize), 
+		nand_info_ex.numchips);
+	printk("OOB:%sB ", ultohstr(mtd->oobsize));
+	printk("ECC:%s ", get_ecctype_str(nand_info_ex.ecctype));
+	printk("\n");
 
 	return 0;
 }
@@ -2940,8 +3022,8 @@ int nand_scan_tail(struct mtd_info *mtd)
 		break;
 
 	case NAND_ECC_NONE:
-		printk(KERN_WARNING "NAND_ECC_NONE selected by board driver. "
-		       "This is not recommended !!\n");
+		//printk(KERN_WARNING "NAND_ECC_NONE selected by board driver. "
+		 //      "This is not recommended !!\n");
 		chip->ecc.read_page = nand_read_page_raw;
 		chip->ecc.write_page = nand_write_page_raw;
 		chip->ecc.read_oob = nand_read_oob_std;

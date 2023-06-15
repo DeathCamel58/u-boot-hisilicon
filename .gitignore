@@ -63,3 +63,14 @@ cscope.*
 /onenand_ipl/onenand-ipl*
 /onenand_ipl/board/*/onenand*
 /onenand_ipl/board/*/*.S
+
+# Configured stuff
+**/*.dep
+
+# Built tools
+tools/envcrc
+tools/gen_eth_addr
+tools/mkimage
+
+# Built images
+u-boot_hi3520d.bin
