@@ -212,8 +212,10 @@ LIBS += drivers/mtd/nand/libnand.a
 LIBS += drivers/mtd/onenand/libonenand.a
 LIBS += drivers/mtd/ubi/libubi.a
 LIBS += drivers/mtd/spi/libspi_flash.a
+LIBS += drivers/mtd/spi/hisfc350/libhisfcv350.a
 LIBS += drivers/net/libnet.a
 LIBS += drivers/net/phy/libphy.a
+LIBS += drivers/net/hisfv300/libhisfv300.a
 LIBS += drivers/pci/libpci.a
 LIBS += drivers/pcmcia/libpcmcia.a
 LIBS += drivers/power/libpower.a
@@ -235,6 +237,7 @@ LIBS += drivers/serial/libserial.a
 LIBS += drivers/twserial/libtws.a
 LIBS += drivers/usb/gadget/libusb_gadget.a
 LIBS += drivers/usb/host/libusb_host.a
+LIBS += drivers/usb/host/hiusb/libhiusb.a
 LIBS += drivers/usb/musb/libusb_musb.a
 LIBS += drivers/usb/phy/libusb_phy.a
 LIBS += drivers/video/libvideo.a
@@ -243,6 +246,7 @@ LIBS += common/libcommon.a
 LIBS += lib/libfdt/libfdt.a
 LIBS += api/libapi.a
 LIBS += post/libpost.a
+LIBS += product/hiddrtv200/libhiddrtv200.a
 
 LIBS := $(addprefix $(obj),$(LIBS))
 .PHONY : $(LIBS) $(TIMESTAMP_FILE) $(VERSION_FILE)
@@ -3181,6 +3185,9 @@ omap3_zoom2_config :	unconfig
 
 smdkc100_config:	unconfig
 	@$(MKCONFIG) $(@:_config=) arm arm_cortexa8 smdkc100 samsung s5pc1xx
+
+hi3520d_config: unconfig
+	@$(MKCONFIG) $(@:_config=) arm hi3520d hi3520d NULL hi3520d
 
 #########################################################################
 ## XScale Systems

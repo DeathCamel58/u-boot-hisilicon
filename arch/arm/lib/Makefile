@@ -39,6 +39,7 @@ GLCOBJS	+= div0.o
 COBJS-y	+= board.o
 COBJS-y	+= bootm.o
 COBJS-y	+= cache.o
+COBJS-y	+= process.o
 ifndef CONFIG_SYS_NO_CP15_CACHE
 COBJS-y	+= cache-cp15.o
 endif

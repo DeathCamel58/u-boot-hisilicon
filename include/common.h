@@ -721,6 +721,12 @@ int cpu_disable(int nr);
 int cpu_release(int nr, int argc, char *argv[]);
 #endif
 
+#define BOOT_MEDIA_UNKNOW         (0)
+#define BOOT_MEDIA_DDR            (1)
+#define BOOT_MEDIA_NAND           (2)
+#define BOOT_MEDIA_SPIFLASH       (3)
+#define BOOT_MEDIA_EMMC           (4)
+
 #endif /* __ASSEMBLY__ */
 
 /* Put only stuff here that the assembler can digest */

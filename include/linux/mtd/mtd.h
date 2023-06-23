@@ -115,7 +115,7 @@ struct mtd_info {
 	u_int32_t flags;
 	uint64_t size;	 /* Total size of the MTD */
 
-	/* "Major" erase size for the device. Naïve users may take this
+	/* "Major" erase size for the device. Naï¿½ve users may take this
 	 * to be the only erase size available, or may use the more detailed
 	 * information below if they desire
 	 */
@@ -238,6 +238,30 @@ struct mtd_info {
 	int (*get_device) (struct mtd_info *mtd);
 	void (*put_device) (struct mtd_info *mtd);
 };
+
+/*
+ *  this interface for iTools and application used.
+ */
+struct mtd_info_ex
+{
+    u_char    type;      /* chip type  MTD_NORFLASH / MTD_NANDFLASH */
+    uint64_t  chipsize;  /* total size of the nand/spi chip */
+    u_int32_t erasesize;
+    u_int32_t pagesize;
+    u_int32_t numchips;  /* number of nand chips */
+
+    u_int32_t oobsize;
+    u_int32_t addrcycle;
+    u_int32_t ecctype;
+
+    u_char    ids[8];
+    u_int32_t id_length;
+    char      name[16]; /* chip names */
+};
+
+extern struct mtd_info_ex * get_nand_info(void);
+
+extern struct mtd_info_ex * get_spiflash_info(void);
 
 static inline uint32_t mtd_div_by_eb(uint64_t sz, struct mtd_info *mtd)
 {
