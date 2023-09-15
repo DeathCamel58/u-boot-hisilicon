@@ -208,6 +208,11 @@ cpu_init_crit:
 	orr	r0, r0, #0x00000800	@ set bit 12 (Z---) BTB
 	mcr	p15, 0, r0, c1, c0, 0
 
+	@Check whether I'm running in dynamic mem bank
+	mov r0, pc, lsr#28
+	cmp r0, #8
+	bleq    relocate
+
 	/*
 	 * Jump to board specific initialization...
 	 * The Mask ROM will have already initialized

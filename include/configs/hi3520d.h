@@ -86,11 +86,9 @@
  * for timer configuration (udelay)	cpu/hi3520d/hi3520d/timer.c
 *  enable timer				board/hi3520d/board.c
  -----------------------------------------------------------------------*/
-#define CFG_TIMERBASE           TIMER0_REG_BASE
+#define CONFIG_SYS_TIMERBASE           TIMER0_REG_BASE
 /* enable timer.32bit, periodic,mask irq,256 divider. */
 #define CFG_TIMER_CTRL		0xCA
-#define READ_TIMER		(*(volatile unsigned long *)\
-					(CFG_TIMERBASE + REG_TIMER_VALUE))
 /* how many ticks per second. show the precision of timer. */
 #define CONFIG_SYS_HZ           (CFG_TIMER_CLK/256)
 #define CFG_HZ			CONFIG_SYS_HZ
@@ -117,7 +115,8 @@
 /*-----------------------------------------------------------------------
  *  Environment   Configuration
  ------------------------------------------------------------------------*/
-#define CONFIG_BOOTDELAY	1
+/* Do not autoboot */
+#define CONFIG_BOOTDELAY	-1
 #define CONFIG_BOOTARGS "mem=96M console=ttyAMA0,115200"
 #define CONFIG_NETMASK  255.255.254.0       /* talk on MY local net */
 #define CONFIG_IPADDR   192.168.1.10        /* static IP I currently own */

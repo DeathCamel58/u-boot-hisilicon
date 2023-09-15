@@ -1,7 +1,6 @@
 #ifndef _L2_H
 #define _L2_H
 #include <config.h>
-#ifndef CONFIG_L2_OFF
 
 extern void l2cache_enable(void);
 extern void l2cache_disable(void);
@@ -172,11 +171,11 @@ extern void l2cache_disable(void);
 
 
 #define L2_REG_WRITE(data, reg)			\
-		\(*(volatile unsigned int *) \
-		\(reg + REG_BASE_L2CACEH) = data)
+		(*(volatile unsigned int *) \
+		(reg + REG_BASE_L2CACEH) = data)
 #define L2_REG_READ(reg)			\
-		\(*(volatile unsigned int *) \
-		\(reg + REG_BASE_L2CACEH))
+		(*(volatile unsigned int *) \
+		(reg + REG_BASE_L2CACEH))
 
 
 
@@ -188,6 +187,5 @@ extern void l2cache_disable(void);
 
 /* #define L2_DATA_LOCK         0X0 */
 /* #define L2_INSTRUCT_LOCK     0X1 */
-#endif
 #endif
 

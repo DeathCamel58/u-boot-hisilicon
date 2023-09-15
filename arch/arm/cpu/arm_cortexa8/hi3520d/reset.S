@@ -20,6 +20,8 @@
  * MA 02111-1307 USA
  */
 
+// This file seems to be based off of arch/arm/cpu/arm_cortexa8/omap3/reset.S
+
 #include <config.h>
 
 .global reset_cpu
@@ -29,7 +31,6 @@ reset_cpu:
 	mov	r3, #0x2			@ full reset pll + mpu
 	str	r3, [r1]			@ force reset
 	mov	r0, r0
-
 _loop_forever:
 	b	_loop_forever
 rstctl:

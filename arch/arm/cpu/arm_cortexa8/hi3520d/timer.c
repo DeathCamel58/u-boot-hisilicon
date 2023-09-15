@@ -35,11 +35,17 @@
  * MA 02111-1307 USA
  */
 
+// This file seems to have been based on arch/arm/cpu/arm926ejs/omap/timer.c
+
 #include <common.h>
 #include <asm/proc-armv/ptrace.h>
 #include <asm/arch/platform.h>
 #include <asm/io.h>
+
 #define TIMER_LOAD_VAL 0xffffffff
+
+/* macro to read the 32 bit timer */
+#define READ_TIMER (*(volatile ulong *)(CONFIG_SYS_TIMERBASE+4))
 
 static ulong timestamp;
 static ulong lastdec;
@@ -58,11 +64,12 @@ int timer_init(void)
 	 * e.g. BUSCLK = 50M, it will roll back after 0xffffffff/timer_clk
 	 * = 43980s = 12hours
 	 */
-	__raw_writel(0, CFG_TIMERBASE + REG_TIMER_CONTROL);
-	__raw_writel(~0, CFG_TIMERBASE + REG_TIMER_RELOAD);
+    /* Start the decrementer ticking down from 0xffffffff */
+    *((int32_t *) (CONFIG_SYS_TIMERBASE + REG_TIMER_CONTROL)) = 0;
+    *((int32_t *) (CONFIG_SYS_TIMERBASE + REG_TIMER_RELOAD)) = ~0;
 
 	/*32 bit, periodic,  256 divider.*/
-	__raw_writel(CFG_TIMER_CTRL, CFG_TIMERBASE + REG_TIMER_CONTROL);
+    *((int32_t *) (CONFIG_SYS_TIMERBASE + REG_TIMER_CONTROL)) = CFG_TIMER_CTRL;
 
 	/* init the timestamp and lastdec value */
 	reset_timer_masked();
@@ -78,74 +85,25 @@ void reset_timer(void)
 	reset_timer_masked();
 }
 
-void reset_timer_masked(void)
-{
-	/* reset time */
-	lastdec = READ_TIMER;  /* capure current decrementer value time */
-	timestamp = 0;	       /* start "advancing" time stamp from 0 */
-}
-
 ulong get_timer(ulong base)
 {
 	return get_timer_masked() - base;
 }
-
-ulong get_timer_masked(void)
-{
-	ulong now = READ_TIMER;		/* current tick value */
-
-	if (lastdec >= now) {
-		/* normal mode, not roll back */
-		timestamp += lastdec - now;
-	} else {
-		/* rollback */
-		timestamp += lastdec + TIMER_LOAD_VAL - now;
-	}
-	lastdec = now;
-
-	return timestamp;
-}
-
 
 void set_timer(ulong t)
 {
 	timestamp = t;
 }
 
-/*
- * This function is derived from PowerPC code (read timebase as long long).
- * On ARM it just returns the timer value.
- */
-unsigned long long get_ticks(void)
-{
-	return get_timer(0);
-}
-
-/*
- * This function is derived from PowerPC code (timebase clock frequency).
- * On ARM it returns the number of timer ticks per second.
- */
-ulong get_tbclk(void)
-{
-	ulong tbclk;
-
-	tbclk = CONFIG_SYS_HZ;
-	return tbclk;
-}
-
-/* delay x useconds AND perserve advance timstamp value */
+/* delay x useconds AND preserve advance timestamp value */
 void __udelay(unsigned long usec)
 {
 	ulong tmo, tmp;
 
-	/* if "big" number, spread normalization to seconds */
-	if (usec >= 1000) {
-		/* start to normalize for usec to ticks per sec */
-		tmo = usec / 1000;
-		/* find number of "ticks" to wait to achieve target */
-		tmo *= CONFIG_SYS_HZ;
-		/* finish normalize. */
-		tmo /= 1000;
+	if(usec >= 1000){		/* if "big" number, spread normalization to seconds */
+		tmo = usec / 1000;	/* start to normalize for usec to ticks per sec */
+		tmo *= CONFIG_SYS_HZ;	/* find number of "ticks" to wait to achieve target */
+		tmo /= 1000;		/* finish normalize. */
 	} else {
 		/* else small number, don't kill it prior to HZ multiply */
 		tmo = usec * CONFIG_SYS_HZ;
@@ -153,17 +111,40 @@ void __udelay(unsigned long usec)
 	}
 
 	tmp = get_timer(0);		/* get current timestamp */
-	/* if setting this fordward will roll time stamp */
-	if ((tmo + tmp + 1) < tmp)
-		reset_timer_masked();	/* reset "advancing" timestamp to 0,
-					   set lastdec value */
-	/* else, set advancing stamp wake up time */
+	if( (tmo + tmp + 1) < tmp )	/* if setting this fordward will roll time stamp */
+		reset_timer_masked ();	/* reset "advancing" timestamp to 0, set lastdec value */
 	else
-		tmo += tmp;
+		tmo += tmp;		/* else, set advancing stamp wakeup time */
 
-	/* loop till event */
-	while (get_timer_masked() < tmo)
-		;
+	while (get_timer_masked () < tmo)/* loop till event */
+		/*NOP*/;
+}
+
+void reset_timer_masked(void)
+{
+    /* reset time */
+    lastdec = READ_TIMER;  /* capure current decrementer value time */
+    timestamp = 0;	       /* start "advancing" time stamp from 0 */
+}
+
+ulong get_timer_masked(void)
+{
+    ulong now = READ_TIMER;		/* current tick value */
+
+	if (lastdec >= now) {		/* normal mode (non roll) */
+		/* normal mode */
+		timestamp += lastdec - now; /* move stamp fordward with absoulte diff ticks */
+	} else {			/* we have overflow of the count down timer */
+		/* nts = ts + ld + (TLV - now)
+		 * ts=old stamp, ld=time that passed before passing through -1
+		 * (TLV-now) amount of time after passing though -1
+		 * nts = new "advancing time stamp"...it could also roll and cause problems.
+		 */
+        timestamp += lastdec + TIMER_LOAD_VAL - now;
+    }
+    lastdec = now;
+
+    return timestamp;
 }
 
 /* waits specified delay value and resets timestamp */
@@ -173,16 +154,11 @@ void udelay_masked(unsigned long usec)
 	ulong endtime;
 	signed long diff;
 
-	/* if "big" number, spread normalization to seconds */
-	if (usec >= 1000) {
-		/* start to normalize for usec to ticks per sec */
-		tmo = usec / 1000;
-		/* find number of "ticks" to wait to achieve target */
-		tmo *= CONFIG_SYS_HZ;
-		/* finish normalize. */
-		tmo /= 1000;
-	} else {			/* else small number,don't kill
-					 * it prior to HZ multiply */
+	if (usec >= 1000) {		/* if "big" number, spread normalization to seconds */
+		tmo = usec / 1000;	/* start to normalize for usec to ticks per sec */
+		tmo *= CONFIG_SYS_HZ;		/* find number of "ticks" to wait to achieve target */
+		tmo /= 1000;		/* finish normalize. */
+	} else {			/* else small number, don't kill it prior to HZ multiply */
 		tmo = usec * CONFIG_SYS_HZ;
 		tmo /= (1000 * 1000);
 	}
@@ -195,4 +171,23 @@ void udelay_masked(unsigned long usec)
 	} while (diff >= 0);
 }
 
+/*
+ * This function is derived from PowerPC code (read timebase as long long).
+ * On ARM it just returns the timer value.
+ */
+unsigned long long get_ticks(void)
+{
+    return get_timer(0);
+}
 
+/*
+ * This function is derived from PowerPC code (timebase clock frequency).
+ * On ARM it returns the number of timer ticks per second.
+ */
+ulong get_tbclk(void)
+{
+    ulong tbclk;
+
+    tbclk = CONFIG_SYS_HZ;
+    return tbclk;
+}

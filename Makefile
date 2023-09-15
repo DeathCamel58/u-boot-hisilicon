@@ -3187,7 +3187,7 @@ smdkc100_config:	unconfig
 	@$(MKCONFIG) $(@:_config=) arm arm_cortexa8 smdkc100 samsung s5pc1xx
 
 hi3520d_config: unconfig
-	@$(MKCONFIG) $(@:_config=) arm hi3520d hi3520d NULL hi3520d
+	@$(MKCONFIG) $(@:_config=) arm arm_cortexa8 hi3520d NULL hi3520d
 
 #########################################################################
 ## XScale Systems
