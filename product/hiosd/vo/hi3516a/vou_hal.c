@@ -293,7 +293,7 @@ HI_U32 inline HAL_GetXDC_BUMA(HI_S32 s32Value)
     }
 }
 
-HI_U32 inline HAL_Conver_CscCoef(HI_S32 s32Value)
+HI_U32 HAL_Conver_CscCoef(HI_S32 s32Value)
 {
     HI_S32 s32Result = ((s32Value << 10)/ 1000 );
 
@@ -1045,11 +1045,11 @@ HI_BOOL HAL_LAYER_SetCscMode(HAL_DISP_LAYER_E enLayer, HI_BOOL bIsHCModeBy709)
         G0_CSC_IDC.u32 = HAL_ReadReg((HI_U32*)addr_REG);
         if (HI_TRUE == bIsHCModeBy709)
         {
-            G0_CSC_IDC.bits.csc_mode = 0x7; /* 111£º RGB2YUV_709 */
+            G0_CSC_IDC.bits.csc_mode = 0x7; /* 111ï¿½ï¿½ RGB2YUV_709 */
         }
         else
         {
-            G0_CSC_IDC.bits.csc_mode = 0x6; /* 110£º RGB2YUV_601 */
+            G0_CSC_IDC.bits.csc_mode = 0x6; /* 110ï¿½ï¿½ RGB2YUV_601 */
         }
         HAL_WriteReg((HI_U32*)addr_REG, G0_CSC_IDC.u32); 
     }
@@ -1262,7 +1262,7 @@ HI_BOOL HAL_GRAPHIC_SetGfxAddr(HAL_DISP_LAYER_E enLayer, HI_U32 u32LAddr)
 }
 
 
-/*ÅäÖÃÍ¼ÐÎ²ãstride*/
+/*ï¿½ï¿½ï¿½ï¿½Í¼ï¿½Î²ï¿½stride*/
 HI_BOOL HAL_GRAPHIC_SetGfxStride(HAL_DISP_LAYER_E enLayer, HI_U16 u16pitch)
 {
     volatile U_G0_STRIDE G0_STRIDE;

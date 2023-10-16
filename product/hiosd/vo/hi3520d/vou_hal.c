@@ -529,7 +529,7 @@ HI_U32 inline HAL_GetXDC_BUMA(HI_S32 s32Value)
     {
         return s32Value;
     }
-    /*0~8bitÓÐÐ§£¬µÚ8bitÎª·ûºÅÎ»*/
+    /*0~8bitï¿½ï¿½Ð§ï¿½ï¿½ï¿½ï¿½8bitÎªï¿½ï¿½ï¿½ï¿½Î»*/
     else
     {
         u32AbsValue = (-1)*s32Value;
@@ -538,13 +538,13 @@ HI_U32 inline HAL_GetXDC_BUMA(HI_S32 s32Value)
     }
 }
 
-HI_U32 inline HAL_Conver_CscCoef(HI_S32 s32Value)
+HI_U32 HAL_Conver_CscCoef(HI_S32 s32Value)
 {
     HI_S32 s32Result = ((s32Value << 8) / 1000);
 
-    /* ±£ÁôÎÊÌâ! µ±CSC¾ØÕó¼ÆËã³öÀ´µÄ½á¹ûs32ValueÊÇ-1¡¢-2µÈÖµÊ±£¬
-    *   s32Result½«ÊÇ0£¬»»¾ä»°Ëµ0.001×ª»»³É¶þ½øÖÆÊÇ0x0000 0000 01
-    *   °´×¢ÊÍµôµÄ´úÂë¼ÆËã£¬Åä¼Ä´æÆ÷µÄÖµÊÇ0x1000£¬Õâ¸öÖµ»áµ¼ÖÂÍ¼ÏñÎªÂÌÉ«(50 2 50 50)
+    /* ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½! ï¿½ï¿½CSCï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä½ï¿½ï¿½s32Valueï¿½ï¿½-1ï¿½ï¿½-2ï¿½ï¿½ÖµÊ±ï¿½ï¿½
+    *   s32Resultï¿½ï¿½ï¿½ï¿½0ï¿½ï¿½ï¿½ï¿½ï¿½ä»°Ëµ0.001×ªï¿½ï¿½ï¿½É¶ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½0x0000 0000 01
+    *   ï¿½ï¿½×¢ï¿½Íµï¿½ï¿½Ä´ï¿½ï¿½ï¿½ï¿½ï¿½ã£¬ï¿½ï¿½Ä´ï¿½ï¿½ï¿½ï¿½ï¿½Öµï¿½ï¿½0x1000ï¿½ï¿½ï¿½ï¿½ï¿½Öµï¿½áµ¼ï¿½ï¿½Í¼ï¿½ï¿½Îªï¿½ï¿½É«(50 2 50 50)
     */
     if (s32Result < 0)
     //if (s32Value < 0)
@@ -1032,7 +1032,7 @@ HI_BOOL HAL_DISP_SetBt656MuxHdSel(HAL_DISP_OUTPUTCHANNEL_E enChan)
         case HAL_DISP_CHANNEL_DHD0:
         {
             VOMUX.u32 = HAL_ReadReg((HI_U32*)&(pVoReg->VOMUX.u32));
-            VOMUX.bits.bt656_mux_hd = 0;//¸ßÇåÑ¡ÔñBT1120Êä³ö
+            VOMUX.bits.bt656_mux_hd = 0;//ï¿½ï¿½ï¿½ï¿½Ñ¡ï¿½ï¿½BT1120ï¿½ï¿½ï¿½
             HAL_WriteReg((HI_U32*)&(pVoReg->VOMUX.u32), VOMUX.u32); 
 
             break;
@@ -1041,7 +1041,7 @@ HI_BOOL HAL_DISP_SetBt656MuxHdSel(HAL_DISP_OUTPUTCHANNEL_E enChan)
         case HAL_DISP_CHANNEL_DSD1:
         {
             VOMUX.u32 = HAL_ReadReg((HI_U32*)&(pVoReg->VOMUX.u32));
-            VOMUX.bits.bt656_mux_hd = 1;//BT1120¹Ü½ÅÑ¡ÔñÊä³ö±êÇåBT656ÐÅºÅ
+            VOMUX.bits.bt656_mux_hd = 1;//BT1120ï¿½Ü½ï¿½Ñ¡ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½BT656ï¿½Åºï¿½
             HAL_WriteReg((HI_U32*)&(pVoReg->VOMUX.u32), VOMUX.u32); 
 
             break;
@@ -1055,7 +1055,7 @@ HI_BOOL HAL_DISP_SetBt656MuxHdSel(HAL_DISP_OUTPUTCHANNEL_E enChan)
     return  HI_TRUE;
 }
 
-/* ¸ßÇåBT1120¹Ü½Å×÷Îª±êÇåBT656¹Ü½ÅÊä³ö±êÇåÊý¾ÝÊ±£¬Ñ¡Ôñ±êÇåÉè±¸ */
+/* ï¿½ï¿½ï¿½ï¿½BT1120ï¿½Ü½ï¿½ï¿½ï¿½Îªï¿½ï¿½ï¿½ï¿½BT656ï¿½Ü½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê±ï¿½ï¿½Ñ¡ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½è±¸ */
 HI_BOOL HAL_DISP_SetBt656SelYc(HAL_DISP_OUTPUTCHANNEL_E enChan, HI_BOOL bBt656H)
 {
     volatile U_VOMUX VOMUX;
@@ -1068,7 +1068,7 @@ HI_BOOL HAL_DISP_SetBt656SelYc(HAL_DISP_OUTPUTCHANNEL_E enChan, HI_BOOL bBt656H)
             {
                 VOMUX.u32 = HAL_ReadReg((HI_U32*)&(pVoReg->VOMUX.u32));
                 
-                VOMUX.bits.bt656_sel_yc = 0;//¸ßÇåBT1120¸ß8Î»Êä³ö±êÇåµÄbt656Êý¾Ý£¬0±íÁ¬½Óµ½sd0
+                VOMUX.bits.bt656_sel_yc = 0;//ï¿½ï¿½ï¿½ï¿½BT1120ï¿½ï¿½8Î»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½bt656ï¿½ï¿½ï¿½Ý£ï¿½0ï¿½ï¿½ï¿½ï¿½ï¿½Óµï¿½sd0
                 HAL_WriteReg((HI_U32*)&(pVoReg->VOMUX.u32), VOMUX.u32); 
         
                 break;
@@ -1076,7 +1076,7 @@ HI_BOOL HAL_DISP_SetBt656SelYc(HAL_DISP_OUTPUTCHANNEL_E enChan, HI_BOOL bBt656H)
             case HAL_DISP_CHANNEL_DSD1:
             {
                 VOMUX.u32 = HAL_ReadReg((HI_U32*)&(pVoReg->VOMUX.u32));
-                VOMUX.bits.bt656_sel_yc = 1;//¸ßÇåBT1120¸ß8Î»Êä³ö±êÇåµÄbt656Êý¾Ý£¬ 1±íÁ¬½Óµ½sd1
+                VOMUX.bits.bt656_sel_yc = 1;//ï¿½ï¿½ï¿½ï¿½BT1120ï¿½ï¿½8Î»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½bt656ï¿½ï¿½ï¿½Ý£ï¿½ 1ï¿½ï¿½ï¿½ï¿½ï¿½Óµï¿½sd1
                 HAL_WriteReg((HI_U32*)&(pVoReg->VOMUX.u32), VOMUX.u32); 
         
                 break;
@@ -1096,7 +1096,7 @@ HI_BOOL HAL_DISP_SetBt656SelYc(HAL_DISP_OUTPUTCHANNEL_E enChan, HI_BOOL bBt656H)
             {
                 VOMUX.u32 = HAL_ReadReg((HI_U32*)&(pVoReg->VOMUX.u32));
                 
-                VOMUX.bits.bt656_sel_yc = 1;//¸ßÇåBT1120µÍ8Î»Êä³ö±êÇåµÄbt656Êý¾Ý£¬1±íÁ¬½Óµ½sd0
+                VOMUX.bits.bt656_sel_yc = 1;//ï¿½ï¿½ï¿½ï¿½BT1120ï¿½ï¿½8Î»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½bt656ï¿½ï¿½ï¿½Ý£ï¿½1ï¿½ï¿½ï¿½ï¿½ï¿½Óµï¿½sd0
                 HAL_WriteReg((HI_U32*)&(pVoReg->VOMUX.u32), VOMUX.u32); 
         
                 break;
@@ -1104,7 +1104,7 @@ HI_BOOL HAL_DISP_SetBt656SelYc(HAL_DISP_OUTPUTCHANNEL_E enChan, HI_BOOL bBt656H)
             case HAL_DISP_CHANNEL_DSD1:
             {
                 VOMUX.u32 = HAL_ReadReg((HI_U32*)&(pVoReg->VOMUX.u32));
-                VOMUX.bits.bt656_sel_yc = 0;//¸ßÇåBT1120µÍ8Î»Êä³ö±êÇåµÄbt656Êý¾Ý£¬ 0±íÁ¬½Óµ½sd1
+                VOMUX.bits.bt656_sel_yc = 0;//ï¿½ï¿½ï¿½ï¿½BT1120ï¿½ï¿½8Î»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½bt656ï¿½ï¿½ï¿½Ý£ï¿½ 0ï¿½ï¿½ï¿½ï¿½ï¿½Óµï¿½sd1
                 HAL_WriteReg((HI_U32*)&(pVoReg->VOMUX.u32), VOMUX.u32); 
         
                 break;
@@ -1121,7 +1121,7 @@ HI_BOOL HAL_DISP_SetBt656SelYc(HAL_DISP_OUTPUTCHANNEL_E enChan, HI_BOOL bBt656H)
     return  HI_TRUE;
 }
 
-/* ±êÇåBT656Ñ¡ÔñÊä³ösd0/sd1 */
+/* ï¿½ï¿½ï¿½ï¿½BT656Ñ¡ï¿½ï¿½ï¿½ï¿½ï¿½sd0/sd1 */
 HI_BOOL HAL_DISP_SetBt656MuxSdSel(HAL_DISP_OUTPUTCHANNEL_E enChan)
 {
     volatile U_VOMUX VOMUX;
@@ -2945,7 +2945,7 @@ HI_BOOL HAL_VIDEO_SetAllAreaDisable  (HAL_DISP_LAYER_E enLayer)
     {
         addr_REG = Vou_GetAbsAddr(enLayer,(HI_U32)&(pVoReg->VHD16REGIONENL.u32));
         HAL_WriteReg((HI_U32*)addr_REG, 0x0); 
-        /* 3521ÎÞ´ËÏî*/
+        /* 3521ï¿½Þ´ï¿½ï¿½ï¿½*/
         #if 0
         addr_REG = Vou_GetAbsAddr(enLayer,(HI_U32)&(pVoReg->VHD64REGIONENH.u32));
         HAL_WriteReg((HI_U32*)addr_REG, 0x0); 
@@ -4049,7 +4049,7 @@ HI_BOOL HAL_LAYER_SetLayerParaUpd(HAL_DISP_LAYER_E enLayer,
     }
     #endif
     #if 0
-    /* hi3521µÄÍ¼ÐÎ²ãÃ»ÓÐËõ·ÅÄÜÁ¦ */
+    /* hi3521ï¿½ï¿½Í¼ï¿½Î²ï¿½Ã»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ */
     else if(enLayer == HAL_DISP_LAYER_GFX0)
     {
         if(enMode == HAL_DISP_COEFMODE_HOR || enMode == HAL_DISP_COEFMODE_ALL)
@@ -4534,7 +4534,7 @@ HI_BOOL HAL_LAYER_SetZmeVerType(HAL_DISP_LAYER_E enLayer, HI_U32 uVerType)
     }
     else
     {
-        //µ±ÊÓÆµ²ãÎªPIPÊ±£¬²»¶Ô¼Ä´æÆ÷½øÐÐ´¦Àí        
+        //ï¿½ï¿½ï¿½ï¿½Æµï¿½ï¿½ÎªPIPÊ±ï¿½ï¿½ï¿½ï¿½ï¿½Ô¼Ä´ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ð´ï¿½ï¿½ï¿½        
     }
 
     return HI_TRUE;
@@ -6276,7 +6276,7 @@ HI_BOOL HAL_WBC_SetWbcOReso(HI_U32 width,  HI_U32 height)
 
 HI_BOOL HAL_WBC_SetWbcSpd(HAL_DISP_LAYER_E enLayer, HI_U32 u16ReqSpd)
 {
-    /* hi3521ÎÞ´ËÏî */
+    /* hi3521ï¿½Þ´ï¿½ï¿½ï¿½ */
     #if 0
     U_WBCCTRL WBCCTRL;
     //U_VHDWBC1STRD VHDWBC1STRD;

@@ -359,7 +359,7 @@ HI_S32 SYS_HAL_SetVoPllFrac(HI_S32 s32Pll, HI_U32 u32BitsSet)
     {
         HI_RegWrite32(u32BitsSet << 0, 0xffffff << 0, IO_ADDRESS(CRG_PERCTL4_ADDR));        
         
-        /* Èç¹û²ÉÓÃÐ¡Êý·ÖÆµÏµÊý£¬Òª½«¶ÔÓ¦µÄÄ£Ê½ÉèÎªÐ¡ÊýÄ£Ê½ */
+        /* ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ð¡ï¿½ï¿½ï¿½ï¿½ÆµÏµï¿½ï¿½ï¿½ï¿½Òªï¿½ï¿½ï¿½ï¿½Ó¦ï¿½ï¿½Ä£Ê½ï¿½ï¿½ÎªÐ¡ï¿½ï¿½Ä£Ê½ */
         if (0 == u32BitsSet)
         {
             HI_RegSetBit(1, 24, IO_ADDRESS(CRG_PERCTL5_ADDR));
@@ -373,7 +373,7 @@ HI_S32 SYS_HAL_SetVoPllFrac(HI_S32 s32Pll, HI_U32 u32BitsSet)
     {
         HI_RegWrite32(u32BitsSet << 0, 0xffffff << 0, IO_ADDRESS(CRG_PERCTL6_ADDR));        
         
-        /* Èç¹û²ÉÓÃÐ¡Êý·ÖÆµÏµÊý£¬Òª½«¶ÔÓ¦µÄÄ£Ê½ÉèÎªÐ¡ÊýÄ£Ê½ */
+        /* ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ð¡ï¿½ï¿½ï¿½ï¿½ÆµÏµï¿½ï¿½ï¿½ï¿½Òªï¿½ï¿½ï¿½ï¿½Ó¦ï¿½ï¿½Ä£Ê½ï¿½ï¿½ÎªÐ¡ï¿½ï¿½Ä£Ê½ */
         if (0 == u32BitsSet)
         {
             HI_RegSetBit(1, 24, IO_ADDRESS(CRG_PERCTL7_ADDR));
@@ -475,7 +475,7 @@ HI_U32 inline HAL_GetXDC_BUMA(HI_S32 s32Value)
     {
         return u32AbsValue & 0x7ff;
     }
-    /*0~10bitÓÐÐ§£¬µÚ10bitÎª·ûºÅÎ»*/
+    /*0~10bitï¿½ï¿½Ð§ï¿½ï¿½ï¿½ï¿½10bitÎªï¿½ï¿½ï¿½ï¿½Î»*/
     else
     {
         u32AbsValue = (~((-1)* u32AbsValue) +1);
@@ -485,13 +485,13 @@ HI_U32 inline HAL_GetXDC_BUMA(HI_S32 s32Value)
     }
 }
 
-HI_U32 inline HAL_Conver_CscCoef(HI_S32 s32Value)
+HI_U32 HAL_Conver_CscCoef(HI_S32 s32Value)
 {
     HI_S32 s32Result = ((s32Value << 10)/ 1000 );
 
-    /* ±£ÁôÎÊÌâ! µ±CSC¾ØÕó¼ÆËã³öÀ´µÄ½á¹ûs32ValueÊÇ-1¡¢-2µÈÖµÊ±£¬
-    *   s32Result½«ÊÇ0£¬»»¾ä»°Ëµ0.001×ª»»³É¶þ½øÖÆÊÇ0x0000 0000 01
-    *   °´×¢ÊÍµôµÄ´úÂë¼ÆËã£¬Åä¼Ä´æÆ÷µÄÖµÊÇ0x1000£¬Õâ¸öÖµ»áµ¼ÖÂÍ¼ÏñÎªÂÌÉ«(50 2 50 50)
+    /* ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½! ï¿½ï¿½CSCï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä½ï¿½ï¿½s32Valueï¿½ï¿½-1ï¿½ï¿½-2ï¿½ï¿½ÖµÊ±ï¿½ï¿½
+    *   s32Resultï¿½ï¿½ï¿½ï¿½0ï¿½ï¿½ï¿½ï¿½ï¿½ä»°Ëµ0.001×ªï¿½ï¿½ï¿½É¶ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½0x0000 0000 01
+    *   ï¿½ï¿½×¢ï¿½Íµï¿½ï¿½Ä´ï¿½ï¿½ï¿½ï¿½ï¿½ã£¬ï¿½ï¿½Ä´ï¿½ï¿½ï¿½ï¿½ï¿½Öµï¿½ï¿½0x1000ï¿½ï¿½ï¿½ï¿½ï¿½Öµï¿½áµ¼ï¿½ï¿½Í¼ï¿½ï¿½Îªï¿½ï¿½É«(50 2 50 50)
     */
     if (s32Result < 0)
     //if (s32Value < 0)
@@ -527,7 +527,7 @@ HI_U32 Vou_GetAbsAddr(HAL_DISP_LAYER_E enLayer, HI_U32 pReg)
         }
         case HAL_DISP_LAYER_VP:
         {
-            RegAbsAddr = (pReg) + (enLayer - 1) * VHD_REG_LEN;//´ÓVHD0¿ªÊ¼Ó³Éä£¬VSD0²ã¹éÎª¸ßÇå²ã£¬Ïàµ±ÓÚ3531µÄVHD2
+            RegAbsAddr = (pReg) + (enLayer - 1) * VHD_REG_LEN;//ï¿½ï¿½VHD0ï¿½ï¿½Ê¼Ó³ï¿½ä£¬VSD0ï¿½ï¿½ï¿½Îªï¿½ï¿½ï¿½ï¿½ã£¬ï¿½àµ±ï¿½ï¿½3531ï¿½ï¿½VHD2
             break;
         }        
         case HAL_DISP_LAYER_VSD0:
@@ -650,7 +650,7 @@ HI_VOID HAL_SYS_SetRdBusId(HI_U32 bMode)
 }
 
 
-//ÉèÖÃÏÔÊ¾Í¨µÀ¿ª¹Ø×´Ì¬
+//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê¾Í¨ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½×´Ì¬
 HI_BOOL HAL_DISP_SetIntfEnable(HAL_DISP_OUTPUTCHANNEL_E enChan, HI_BOOL enIntf)
 {
     volatile U_DHD0_CTRL DHD0_CTRL;     
@@ -670,7 +670,7 @@ HI_BOOL HAL_DISP_SetIntfEnable(HAL_DISP_OUTPUTCHANNEL_E enChan, HI_BOOL enIntf)
     return HI_TRUE;
 }
 
-//ÅäÖÃ½Ó¿ÚÊ±Ðò
+//ï¿½ï¿½ï¿½Ã½Ó¿ï¿½Ê±ï¿½ï¿½
 HI_BOOL HAL_DISP_SetIntfSync(HAL_DISP_OUTPUTCHANNEL_E enChan,
                                      HAL_DISP_SYNCINFO_S *pstSyncInfo)
 {   
@@ -733,7 +733,7 @@ HI_BOOL HAL_DISP_SetIntfSync(HAL_DISP_OUTPUTCHANNEL_E enChan,
     return HI_TRUE;
 }
 
-/* ÉèÖÃÊä³ö½Ó¿ÚµÄÍâÍ¬²½¼«ÐÔ*/
+/* ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ó¿Úµï¿½ï¿½ï¿½Í¬ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½*/
 HI_BOOL HAL_DISP_SetIntfSyncInv(HAL_DISP_INTF_E enIntf, HAL_DISP_SYNCINV_S *pstInv)
 {
     volatile U_INTF_SYNC_INV INTF_SYNC_INV;    
@@ -748,7 +748,7 @@ HI_BOOL HAL_DISP_SetIntfSyncInv(HAL_DISP_INTF_E enIntf, HAL_DISP_SYNCINV_S *pstI
     return HI_TRUE;
 }
 
-/* ÉèÖÃÊä³ö½Ó¿ÚµÄmuxÊý¾ÝÑ¡Ôñ*/
+/* ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ó¿Úµï¿½muxï¿½ï¿½ï¿½ï¿½Ñ¡ï¿½ï¿½*/
 HI_BOOL  HAL_DISP_SetIntfMuxSel(HAL_DISP_OUTPUTCHANNEL_E enChan,HAL_DISP_INTF_E enIntf)
 {
     volatile U_VO_MUX VO_MUX;
@@ -812,7 +812,7 @@ HI_BOOL  HAL_DISP_SetIntfMuxSel(HAL_DISP_OUTPUTCHANNEL_E enChan,HAL_DISP_INTF_E 
     return HI_TRUE;
 }
 
-/* ÉèÖÃÊä³ö½Ó¿ÚµÄdacÊ¹ÄÜ*/
+/* ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ó¿Úµï¿½dacÊ¹ï¿½ï¿½*/
 HI_BOOL HAL_DISP_SetIntfDacEnable(HAL_DISP_INTF_E enIntf, HI_BOOL bDacEnable)
 {
     volatile U_VO_DAC_CTRL VO_DAC_CTRL;    
@@ -891,7 +891,7 @@ HI_BOOL HAL_DISP_CvbsDacEn(HAL_DISP_OUTPUTCHANNEL_E enChan, HI_BOOL bEn)
     return HI_TRUE;
 }
 
-/* ÉèÖÃdacµçÁ÷ÔöÒæ */
+/* ï¿½ï¿½ï¿½ï¿½dacï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ */
 HI_BOOL HAL_DISP_SetVgaGc(HI_U32 u32Value)
 {
     volatile U_VO_DAC_R_CTRL VO_DAC_R_CTRL;    
@@ -933,7 +933,7 @@ HI_BOOL HAL_DISP_SetCvbsGc(HAL_DISP_OUTPUTCHANNEL_E enChan, HI_U32 u32Value)
 }
 
 
-/* ÉèÖÃÊä³ö½Ó¿ÚµÄCSC*/
+/* ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ó¿Úµï¿½CSC*/
 HI_BOOL HAL_DISP_SetIntfCSCEn(HAL_DISP_INTF_E enIntf,HI_BOOL bCscEn)
 {   
     U_INTF_CSC_IDC INTF_CSC_IDC;
@@ -1003,7 +1003,7 @@ HI_BOOL HAL_DISP_SetIntfCscCoef(HAL_DISP_INTF_E enIntf,CscCoef_S *pstCoef)
     return HI_TRUE;
 }
 
-/*3535Ö»ÒªÉèÖÃhdmiµÄ½Ó¿Ú£¬ÇÒhdmiÖ»ÄÜ°ó¶¨ÔÚINTFÉÏÃæ£¬ CVBSµÄÇ¯Î»¹Ì¶¨ÔÚ±êÇåÍ¨µÀÉÏ£¬ÇÒ3535Ã»ÓÐÇ¯Î»Ö»ÄÜ¿ª¹Ø*/
+/*3535Ö»Òªï¿½ï¿½ï¿½ï¿½hdmiï¿½Ä½Ó¿Ú£ï¿½ï¿½ï¿½hdmiÖ»ï¿½Ü°ï¿½ï¿½ï¿½INTFï¿½ï¿½ï¿½æ£¬ CVBSï¿½ï¿½Ç¯Î»ï¿½Ì¶ï¿½ï¿½Ú±ï¿½ï¿½ï¿½Í¨ï¿½ï¿½ï¿½Ï£ï¿½ï¿½ï¿½3535Ã»ï¿½ï¿½Ç¯Î»Ö»ï¿½Ü¿ï¿½ï¿½ï¿½*/
 HI_BOOL  HAL_DISP_SetIntfClip(HAL_DISP_INTF_E enIntf,
                                         HI_BOOL enClip,
                                         HAL_DISP_CLIP_S *pstClipData)
@@ -1029,7 +1029,7 @@ HI_BOOL  HAL_DISP_SetIntfClip(HAL_DISP_INTF_E enIntf,
     return HI_TRUE;
 }
 
-//ÉèÖÃÏÔÊ¾Í¨µÀÖÐ¶Ï²úÉúÄ£Ê½
+//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê¾Í¨ï¿½ï¿½ï¿½Ð¶Ï²ï¿½ï¿½ï¿½Ä£Ê½
 HI_BOOL HAL_DISP_SetVtThdMode(HAL_DISP_OUTPUTCHANNEL_E enChan, HI_U32 uFieldMode)
 {
     volatile U_DHD0_VTTHD  DHD0_VTTHD;
@@ -1049,7 +1049,7 @@ HI_BOOL HAL_DISP_SetVtThdMode(HAL_DISP_OUTPUTCHANNEL_E enChan, HI_U32 uFieldMode
     return HI_TRUE;
 }
 
-//ÉèÖÃÏÔÊ¾Í¨µÀÖÐ¶Ï²úÉúÃÅÏÞ
+//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê¾Í¨ï¿½ï¿½ï¿½Ð¶Ï²ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 HI_BOOL HAL_DISP_SetVtThd(HAL_DISP_OUTPUTCHANNEL_E enChan, HI_U32 vtthd)
 {    
     volatile U_DHD0_VTTHD  DHD0_VTTHD;
@@ -1069,7 +1069,7 @@ HI_BOOL HAL_DISP_SetVtThd(HAL_DISP_OUTPUTCHANNEL_E enChan, HI_U32 vtthd)
     return HI_TRUE;
 }
 
-//´ò¿ª¡¢¹Ø±ÕÖÐ¶Ï
+//ï¿½ò¿ª¡ï¿½ï¿½Ø±ï¿½ï¿½Ð¶ï¿½
 HI_BOOL HAL_DISP_SetIntMask(HI_U32 u32MaskEn)
 {
     volatile U_VOINTMSK VOINTMSK;
@@ -1094,7 +1094,7 @@ HI_BOOL  HAL_DISP_ClrIntMask(HI_U32 u32MaskEn)
     return HI_TRUE;
 }
 
-//Çå³ýÖÐ¶Ï×´Ì¬
+//ï¿½ï¿½ï¿½ï¿½Ð¶ï¿½×´Ì¬
 HI_BOOL HAL_DISP_ClearIntStatus(HI_U32 u32IntMsk)
 {
     /* read interrupt status */
@@ -1167,7 +1167,7 @@ HI_VOID HAL_DISP_SetRegUp (HAL_DISP_OUTPUTCHANNEL_E enChan)
 }
 
 
-/* ÉèÖÃ¼Ä´æÆ÷Ö¡³¡¸üÐÂÄ£Ê½*/
+/* ï¿½ï¿½ï¿½Ã¼Ä´ï¿½ï¿½ï¿½Ö¡ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä£Ê½*/
 HI_BOOL HAL_VIDEO_SetLayerUpMode(HAL_DISP_LAYER_E enLayer, HI_U32 bUpMode)
 {
     U_V0_CTRL V0_CTRL;
@@ -1251,7 +1251,7 @@ HI_BOOL HAL_VIDEO_SetIfirCoef(HAL_DISP_LAYER_E enLayer, HI_S32 * s32Coef)
     return HI_TRUE;
 }
 
-//ÉèÖÃÊÓÆµÏÔÊ¾ÇøÓò´°¿Ú
+//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æµï¿½ï¿½Ê¾ï¿½ï¿½ï¿½ò´°¿ï¿½
 HI_BOOL HAL_VIDEO_SetLayerDispRect(HAL_DISP_LAYER_E enLayer, RECT_S *pstRect)
 {
     volatile U_V0_DFPOS V0_DFPOS;
@@ -1298,7 +1298,7 @@ HI_BOOL HAL_VIDEO_SetLayerDispRect(HAL_DISP_LAYER_E enLayer, RECT_S *pstRect)
     return HI_TRUE;
 }
 
-//ÉèÖÃÊÓÆµÍ¼ÏñÏÔÊ¾ÇøÓò´°¿Ú
+//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ÆµÍ¼ï¿½ï¿½ï¿½ï¿½Ê¾ï¿½ï¿½ï¿½ò´°¿ï¿½
 HI_BOOL HAL_VIDEO_SetLayerVideoRect(HAL_DISP_LAYER_E enLayer, RECT_S *pstRect)
 {
     volatile U_V0_VFPOS V0_VFPOS;    
@@ -1405,7 +1405,7 @@ HI_BOOL HAL_LAYER_SetLayerDataFmt(HAL_DISP_LAYER_E enLayer,
     return HI_TRUE;
 }
 
-//ÉèÖÃ²ãÉ«²Ê¿Õ¼ä×ª»»²ÎÊý
+//ï¿½ï¿½ï¿½Ã²ï¿½É«ï¿½Ê¿Õ¼ï¿½×ªï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 HI_BOOL HAL_LAYER_SetCscCoef(HAL_DISP_LAYER_E enLayer, CscCoef_S *pstCscCoef)
 {
     U_G0_CSC_IDC G0_CSC_IDC;
@@ -1545,7 +1545,7 @@ HI_BOOL HAL_LAYER_SetCscCoef(HAL_DISP_LAYER_E enLayer, CscCoef_S *pstCscCoef)
     return HI_TRUE;
 }
 
-/*ÅäÖÃ²ãCSCÊ¹ÄÜ*/
+/*ï¿½ï¿½ï¿½Ã²ï¿½CSCÊ¹ï¿½ï¿½*/
 HI_BOOL HAL_LAYER_SetCscEn(HAL_DISP_LAYER_E enLayer, HI_BOOL bCscEn)
 {
     U_V0_CSC_IDC  V0_CSC_IDC;
@@ -1577,7 +1577,7 @@ HI_BOOL HAL_LAYER_SetCscEn(HAL_DISP_LAYER_E enLayer, HI_BOOL bCscEn)
 
 
 
-//ÅäÖÃÔ´´°¿Ú
+//ï¿½ï¿½ï¿½ï¿½Ô´ï¿½ï¿½ï¿½ï¿½
 HI_BOOL HAL_LAYER_SetLayerInRect(HAL_DISP_LAYER_E enLayer, RECT_S *pstRect)
 {
     U_V0_IRESO V0_IRESO;
@@ -1680,7 +1680,7 @@ HI_BOOL  HAL_LAYER_SetRegUp(HAL_DISP_LAYER_E enLayer)
     return HI_TRUE;
 }
 
-/*ÅäÖÃÍ¼ÐÎ²ãÔ´µØÖ·*/
+/*ï¿½ï¿½ï¿½ï¿½Í¼ï¿½Î²ï¿½Ô´ï¿½ï¿½Ö·*/
 HI_BOOL HAL_GRAPHIC_SetGfxAddr(HAL_DISP_LAYER_E enLayer, HI_U32 u32LAddr)
 {
     U_G0_ADDR G0_ADDR;
@@ -1704,7 +1704,7 @@ HI_BOOL HAL_GRAPHIC_SetGfxAddr(HAL_DISP_LAYER_E enLayer, HI_U32 u32LAddr)
     return HI_TRUE;
 }
 
-/*ÅäÖÃÍ¼ÐÎ²ãstride*/
+/*ï¿½ï¿½ï¿½ï¿½Í¼ï¿½Î²ï¿½stride*/
 HI_BOOL HAL_GRAPHIC_SetGfxStride(HAL_DISP_LAYER_E enLayer, HI_U16 u16pitch)
 {
     volatile U_G0_STRIDE G0_STRIDE;
@@ -1724,7 +1724,7 @@ HI_BOOL HAL_GRAPHIC_SetGfxStride(HAL_DISP_LAYER_E enLayer, HI_U16 u16pitch)
     return HI_TRUE;
 }
 
-/*ÅäÖÃÍ¼ÐÎ²ãÊý¾ÝÀ©Õ¹·½Ê½*/
+/*ï¿½ï¿½ï¿½ï¿½Í¼ï¿½Î²ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Õ¹ï¿½ï¿½Ê½*/
 HI_BOOL HAL_GRAPHIC_SetGfxExt(HAL_DISP_LAYER_E enLayer,
                                 HAL_GFX_BITEXTEND_E enMode)
 {
