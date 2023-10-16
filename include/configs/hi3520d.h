@@ -287,5 +287,15 @@
 #define ENABLE_HI3515A_BLANK
 #define REG_INFO_BLANK_SIZE 2400
 
+/*
+ * Enable additional commands that can add features to depthcharge
+ * Ref: https://depthcharge.readthedocs.io/en/latest/
+ */
+#define CONFIG_CMD_BDI		/* bdinfo			*/
+#define CONFIG_CMD_SETEXPR	/* setexpr support		*/
+#define CONFIG_CMD_ITEST	/* Integer (and string) test	*/
+#define CONFIG_CMD_SETEXPR	/* setexpr support		*/
+#define CONFIG_CMD_I2C		/* I2C serial bus support	*/
+
 #define CONFIG_OSD_ENABLE
 #endif	/* __CONFIG_H */
