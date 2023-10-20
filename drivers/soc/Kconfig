@@ -16,6 +16,12 @@ config SOC_DEVICE_TI_K3
 	  This allows Texas Instruments Keystone 3 SoCs to identify
 	  specifics about the SoC in use.
 
+config SOC_DEVICE_HISILICON
+	depends on SOC_DEVICE && ARCH_HI3520D
+	bool "Enable SoC Device ID driver for HiSilicon SoCs"
+	help
+	  This allows HiSilicon SoCs to identify specifics about the SoC in use.
+
 config SOC_XILINX_ZYNQMP
 	bool "Enable SoC Device ID driver for Xilinx ZynqMP"
 	depends on SOC_DEVICE && ARCH_ZYNQMP
