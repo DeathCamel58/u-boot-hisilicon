@@ -1,0 +1,15 @@
+if TARGET_NVR0408
+
+config SYS_BOARD
+	default "nvr0408"
+
+config SYS_VENDOR
+	default "hisilicon"
+
+config SYS_SOC
+	default "hi3520d"
+
+config SYS_CONFIG_NAME
+	default "nvr0408"
+
+endif

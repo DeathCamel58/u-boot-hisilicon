@@ -1,0 +1,339 @@
+// SPDX-License-Identifier: GPL-2.0-or-later
+/*
+ * Created by Dylan Corrales
+ * Based on the hi3519.dtsi file
+ */
+
+// TODO: Check if the clock header needs to change
+#include <dt-bindings/clock/hi3520d-clock.h>
+#include <dt-bindings/interrupt-controller/arm-gic.h>
+/ {
+	#address-cells = <1>;
+	#size-cells = <1>;
+	chosen { };
+
+	cpus {
+		#address-cells = <1>;
+		#size-cells = <0>;
+
+		cpu@0 {
+			device_type = "cpu";
+			compatible = "arm,cortex-a9";
+			reg = <0>;
+		};
+	};
+
+	// TODO: Check this
+	gic: interrupt-controller@10300000 {
+		compatible = "arm,cortex-a9-gic";
+		#interrupt-cells = <3>;
+		interrupt-controller;
+		reg = <0x10301000 0x1000>,
+		      <0x10302000 0x1000>;
+	};
+
+    memory@80000000 {
+        device_type = "memory";
+        reg = <0x80000000 0x1000000>; /* 256 MB */
+    };
+
+	clk_3m: clk_3m {
+		compatible = "fixed-clock";
+		#clock-cells = <0>;
+		clock-frequency = <3000000>;
+	};
+
+	soc {
+		#address-cells = <1>;
+		#size-cells = <1>;
+		compatible = "simple-bus";
+		interrupt-parent = <&gic>;
+		ranges;
+
+        watchdog@20040000 {
+            compatible = "arm,sp805", "arm,primecell";
+            reg = <0x20040000 0x1000>;
+            interrupts = <GIC_SPI 45 IRQ_TYPE_LEVEL_HIGH>;
+            clocks = <&crg HI3520D_WDT_CLK>;
+            clock-names = "apb_pclk";
+        };
+
+        i2c0: i2c@200d0000 {
+            compatible = "hisilicon,hi3520d-i2c";
+            reg = <0x200d0000 0x1000>;
+            interrupts = <GIC_SPI 89 IRQ_TYPE_LEVEL_HIGH>; // TODO: Change this
+            #address-cells = <1>;
+            #size-cells = <0>;
+            clock-frequency = <100000>;
+            status = "disabled";
+        };
+
+        // TODO: Check if the clock name needs to change
+        // The CRG is not loading. Loading the driver results in ENODEV response
+        crg: clock-reset-controller@20300000 {
+            compatible = "hisilicon,hi3520d-crg";
+            reg = <0x20300000 0x10000>;
+            #clock-cells = <1>;
+            #reset-cells = <2>;
+        };
+
+		// TODO: Check the interrupts and clocks
+		uart0: serial@20080000 {
+			compatible = "arm,pl011", "arm,primecell";
+			reg = <0x20080000 0x10000>;
+			interrupts = <GIC_SPI 4 IRQ_TYPE_LEVEL_HIGH>;
+			clocks = <&crg HI3520D_UART0_CLK>, <&crg HI3520D_UART0_CLK>;
+			clock-names = "uartclk", "apb_pclk";
+			status = "disable";
+		};
+
+		// TODO: Check the interrupts and clocks
+		uart1: serial@20090000 {
+			compatible = "arm,pl011", "arm,primecell";
+			reg = <0x20090000 0x10000>;
+			interrupts = <GIC_SPI 5 IRQ_TYPE_LEVEL_HIGH>;
+			clocks = <&crg HI3520D_UART1_CLK>, <&crg HI3520D_UART1_CLK>;
+			clock-names = "uartclk", "apb_pclk";
+			status = "disable";
+		};
+
+		// TODO: Check the interrupts and clocks
+		uart2: serial@200a0000 {
+			compatible = "arm,pl011", "arm,primecell";
+			reg = <0x200a0000 0x10000>;
+			interrupts = <GIC_SPI 6 IRQ_TYPE_LEVEL_HIGH>;
+			clocks = <&crg HI3520D_UART2_CLK>, <&crg HI3520D_UART2_CLK>;
+			clock-names = "uartclk", "apb_pclk";
+			status = "disable";
+		};
+
+		// TODO: Check the interrupts and clocks
+		uart3: serial@200b0000 {
+			compatible = "arm,pl011", "arm,primecell";
+			reg = <0x200b0000 0x10000>;
+			interrupts = <GIC_SPI 7 IRQ_TYPE_LEVEL_HIGH>;
+			clocks = <&crg HI3520D_UART3_CLK>, <&crg HI3520D_UART3_CLK>;
+			clock-names = "uartclk", "apb_pclk";
+			status = "disable";
+		};
+
+		// TODO: Check the interrupts
+		dual_timer0: timer@20000000 {
+			compatible = "arm,sp804", "arm,primecell";
+            reg = <0x20000000 0x1000>;
+			interrupts = <GIC_SPI 64 IRQ_TYPE_LEVEL_HIGH>,
+				     <GIC_SPI 65 IRQ_TYPE_LEVEL_HIGH>;
+			clocks = <&clk_3m>, <&clk_3m>, <&clk_3m>;
+			clock-names = "timer0", "timer1", "apb_pclk";
+		};
+
+		dual_timer1: timer@20010000 {
+			compatible = "arm,sp804", "arm,primecell";
+            reg = <0x20010000 0x1000>;
+			interrupts = <GIC_SPI 66 IRQ_TYPE_LEVEL_HIGH>,
+				     <GIC_SPI 67 IRQ_TYPE_LEVEL_HIGH>;
+			clocks = <&clk_3m>, <&clk_3m>, <&clk_3m>;
+			clock-names = "timer2", "timer3", "apb_pclk";
+		};
+        // There may be additional timers at
+        // 0x20130000: timer4, timer5
+        // 0x20140000: timer6, timer7
+
+        spi_bus0: spi@10010000 {
+            compatible = "hisilicon,hisfc350-spi", "arm,primecell";
+            reg = <0x10010000 0x10000>;
+            interrupts = <GIC_SPI 9 IRQ_TYPE_LEVEL_HIGH>;
+            clocks = <&crg HI3520D_SPI0_CLK>, <&crg HI3520D_SPI0_CLK>;
+            clock-names = "sspclk", "apb_pclk";
+            num-cs = <1>;
+            #address-cells = <1>;
+            #size-cells = <0>;
+
+            mx25l12805d@0 {
+                compatible = "mx25l12805d", "jedec,spi-nor";
+                spi-max-frequency = <50000000>;
+                reg = <0>;
+
+                partitions {
+                    compatible = "fixed-partitions";
+                    #address-cells = <1>;
+                    #size-cells = <1>;
+
+                    partition@0 {
+                        label = "u-boot";
+                        reg = <0x0 0x80000>;
+                    };
+
+                    partition@80000 {
+                        label = "env";
+                        reg = <0x80000 0x40000>;
+                    };
+
+                    partition@c0000 {
+                        label = "img";
+                        reg = <0xc0000 0x40000>;
+                    };
+
+                    partition@100000 {
+                        label = "config";
+                        reg = <0x100000 0x80000>;
+                    };
+
+                    partition@180000 {
+                        label = "kernel";
+                        reg = <0x180000 0x280000>;
+                    };
+
+                    partition@400000 {
+                        label = "R";
+                        reg = <0x400000 0xc00000>;
+                    };
+                };
+            };
+        };
+
+//		// TODO: This hasn't been checked at all
+//		spi_bus1: spi@12120000 {
+//			compatible = "hisilicon,hisfc350-spi", "arm,primecell";
+//			reg = <0x12120000 0x1000>;
+//			interrupts = <GIC_SPI 9 IRQ_TYPE_LEVEL_HIGH>;
+//			clocks = <&crg HI3520D_SPI0_CLK>, <&crg HI3520D_SPI0_CLK>;
+//			clock-names = "sspclk", "apb_pclk";
+//			num-cs = <1>;
+//			#address-cells = <1>;
+//			#size-cells = <0>;
+//			status = "disable";
+//		};
+//
+//		// TODO: This hasn't been checked at all
+//		spi_bus2: spi@12121000 {
+//			compatible = "hisilicon,hisfc350-spi", "arm,primecell";
+//			reg = <0x12121000 0x1000>;
+//			interrupts = <GIC_SPI 10 IRQ_TYPE_LEVEL_HIGH>;
+//			clocks = <&crg HI3520D_SPI1_CLK>, <&crg HI3520D_SPI1_CLK>;
+//			clock-names = "sspclk", "apb_pclk";
+//			num-cs = <1>;
+//			#address-cells = <1>;
+//			#size-cells = <0>;
+//			status = "disable";
+//		};
+
+		// TODO: This hasn't been checked at all
+		spi_bus2: spi@12122000 {
+			compatible = "hisilicon,hisfc350-spi", "arm,primecell";
+			reg = <0x12122000 0x1000>;
+			interrupts = <GIC_SPI 11 IRQ_TYPE_LEVEL_HIGH>;
+			clocks = <&crg HI3520D_SPI2_CLK>, <&crg HI3520D_SPI2_CLK>;
+			clock-names = "sspclk", "apb_pclk";
+			num-cs = <1>;
+			#address-cells = <1>;
+			#size-cells = <0>;
+//			status = "disable";
+		};
+
+        sysctl: system-controller@20050000 {
+			compatible = "hisilicon,hi3520d-sysctrl", "syscon", "simple-mfd";
+			reg = <0x20050000 0x1000>;
+            #address-cells = <1>;
+            #size-cells = <1>;
+            ranges = <0x0 0x20050000 0x1000>;
+
+            rst: reset-controller {
+                compatible = "syscon-reboot";
+                regmap = <&sysctl>;
+                offset = <0x04>;
+                mask = <0x1>;
+            };
+
+            chipid@ee0 {
+                compatible = "hisilicon,hi3520d-chipid";
+                reg = <0xee0 0x10>;
+            };
+		};
+
+        apb: apb@20060000 {
+			compatible = "arm,hisi_apb";
+			reg = <0x20060000 0x1000>;
+		};
+
+        pctrl: pctrl@200f0000 {
+            compatible = "hisilicon,hi3520d-pctrl";
+            reg = <0x0 0x200f0000 0x0 0x10000>;
+            #clock-cells = <1>;
+        };
+
+		perictrl: peripheral-controller@20050000 {
+			compatible = "hisilicon,hi3798cv200-perictrl", "syscon",
+				     "simple-mfd";
+			reg = <0x20050000 0x1000>;
+			#address-cells = <1>;
+			#size-cells = <1>;
+			ranges = <0x0 0x20050000 0x1000>;
+
+			usb2_phy1: usb2-phy@120 {
+				compatible = "hisilicon,hi3798cv200-usb2-phy";
+				reg = <0x120 0x4>;
+				clocks = <&crg HI3520D_USB2_PHY1_REF_CLK>;
+				resets = <&crg 0xbc 4>;
+				#address-cells = <1>;
+				#size-cells = <0>;
+
+				usb2_phy1_port0: phy@0 {
+					reg = <0>;
+					#phy-cells = <0>;
+					resets = <&crg 0xbc 8>;
+				};
+
+				usb2_phy1_port1: phy@1 {
+					reg = <1>;
+					#phy-cells = <0>;
+					resets = <&crg 0xbc 9>;
+				};
+			};
+		};
+
+        ohci: ohci@100a0000 {
+            compatible = "generic-ohci";
+            reg = <0x100a0000 0x10000>;
+            interrupts = <GIC_SPI 67 IRQ_TYPE_LEVEL_HIGH>;
+            clocks = <&crg HI3520D_USB2_USB2_BUS_CLK>,
+            <&crg HI3520D_USB2_12M_CLK>,
+            <&crg HI3520D_USB2_48M_CLK>;
+            clock-names = "bus", "clk12", "clk48";
+            resets = <&crg 0xb8 12>;
+            reset-names = "bus";
+            phys = <&usb2_phy1_port0>;
+            phy-names = "usb";
+            status = "disabled";
+        };
+
+        // TODO: Add EHCI @0x100B0000
+
+        /*
+         * Support for femac was pulled from patchwork. Not yet in U-Boot
+         * Ref: https://patchwork.ozlabs.org/project/uboot/patch/20230823-wip-hisi_femac-trunk-v2-1-f64c28dc9b95@outlook.com/
+         * Ref: https://patchwork.ozlabs.org/project/uboot/patch/20230823-wip-hisi_femac-trunk-v2-2-f64c28dc9b95@outlook.com/
+         */
+        hisi_femac: ethernet@10090000 {
+            compatible = "hisilicon,hi3520dv200-femac", "hisilicon,hisi-femac-v2";
+            reg = <0x10090000 0x1000>,<0x10091300 0x200>;
+            interrupts = <GIC_SPI 56 IRQ_TYPE_LEVEL_HIGH>;
+            clocks = <&crg HI3520DV200_FEMAC_CLK>, <&crg HI3520DV200_FEMAC_CLK>, <&crg HI3520DV200_FEMAC_CLK>;
+            clock-names = "mac", "bus", "phy";
+            resets = <&crg 0xec 0>,<&crg 0xec 3>;
+            reset-names = "mac","phy";
+            mac-address = [00 00 00 00 00 00];
+            phy-mode = "mii";
+            phy-handle = <&phy0>;
+            hisilicon,phy-reset-delays-us = <10000 20000 20000>;
+
+            /* Micrel KSZ8051RNL */
+            phy0: ethernet-phy@0 {
+                compatible = "ethernet-phy-ieee802.3-c22";
+                max-speed = <100>;
+                micrel,led-mode = <0>;
+                reg = <0>;
+            };
+        };
+	};
+};

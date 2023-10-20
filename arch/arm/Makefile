@@ -60,6 +60,7 @@ machine-$(CONFIG_ARCH_BCMSTB)		+= bcmstb
 machine-$(CONFIG_ARCH_DAVINCI)		+= davinci
 machine-$(CONFIG_ARCH_EXYNOS)		+= exynos
 machine-$(CONFIG_ARCH_GXP)		+= hpe
+machine-$(CONFIG_ARCH_HI3520D)		+= hi3520d
 machine-$(CONFIG_ARCH_HIGHBANK)		+= highbank
 machine-$(CONFIG_ARCH_HISTB)		+= histb
 machine-$(CONFIG_ARCH_IPQ40XX)		+= ipq40xx

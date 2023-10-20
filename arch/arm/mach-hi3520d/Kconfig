@@ -1,0 +1,25 @@
+# SPDX-License-Identifier: GPL-2.0
+
+config ARCH_HI3520D
+	bool "HiSilicon Hi3520D SoC"
+	select DM_EVENT
+	select CPU_V7A
+	select REGMAP
+	select SYSCON
+	select SYSRESET
+	select SYSRESET_SYSCON
+	select PL01X_SERIAL
+	select OF_CONTROL
+	select CLK
+	select TIMER
+	select SP804_TIMER
+	select WDT_HI3520D
+	select SOC_DEVICE
+	select SOC_DEVICE_HISILICON
+
+if ARCH_HI3520D
+
+config SYS_MALLOC_LEN
+	default 0x400000
+
+endif

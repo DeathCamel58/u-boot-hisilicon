@@ -1,0 +1,31 @@
+// SPDX-License-Identifier: GPL-2.0-or-later
+/*
+ * Created by Dylan Corrales
+ * Based on the hi3519-demb.dts file
+ */
+
+/dts-v1/;
+#include "hi3520d.dtsi"
+
+/ {
+	model = "NVR0408";
+	compatible = "nvr0408";
+
+	aliases {
+		serial0 = &uart0;
+	};
+
+	memory@80000000 {
+		device_type = "memory";
+		reg = <0x80000000 0x80000000>;
+	};
+};
+
+&uart0 {
+	status = "okay";
+};
+
+&dual_timer0 {
+	status = "okay";
+};
+

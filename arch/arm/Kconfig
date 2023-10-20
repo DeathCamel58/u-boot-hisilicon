@@ -1499,6 +1499,21 @@ config TARGET_POPLAR
 	  making it capable of running any commercial set-top solution based on
 	  Linux or Android.
 
+config TARGET_NVR0408
+	bool "Support NVR0408"
+	select ARCH_HI3520D
+	select HISFC350_SPI
+	select DM_SPI_FLASH
+	select SPI_FLASH
+	select SPI_FLASH_MACRONIX
+	select SPI_FLASH_MTD
+	select MTD
+	select DM_MTD
+	select MTD_SPI_NAND
+	imply CMD_DM
+	  help
+	  Support for the NVR0408 based on the HiSilicon Hi3520D platform.
+
 config TARGET_LS1012AQDS
 	bool "Support ls1012aqds"
 	select ARCH_LS1012A
@@ -2192,6 +2207,8 @@ source "arch/arm/mach-octeontx2/Kconfig"
 
 source "arch/arm/cpu/armv7/ls102xa/Kconfig"
 
+source "arch/arm/mach-hi3520d/Kconfig"
+
 source "arch/arm/mach-imx/mx3/Kconfig"
 
 source "arch/arm/mach-imx/mx5/Kconfig"
@@ -2309,6 +2326,7 @@ source "board/grinn/chiliboard/Kconfig"
 source "board/hisilicon/hikey/Kconfig"
 source "board/hisilicon/hikey960/Kconfig"
 source "board/hisilicon/poplar/Kconfig"
+source "board/hisilicon/nvr0408/Kconfig"
 source "board/isee/igep003x/Kconfig"
 source "board/kontron/sl28/Kconfig"
 source "board/myir/mys_6ulx/Kconfig"

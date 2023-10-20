@@ -16,6 +16,7 @@ dtb-$(CONFIG_ARCH_EXYNOS4) += exynos4210-origen.dtb \
 
 dtb-$(CONFIG_TARGET_HIKEY) += hi6220-hikey.dtb
 dtb-$(CONFIG_TARGET_HIKEY960) += hi3660-hikey960.dtb
+dtb-$(CONFIG_TARGET_NVR0408) += hi3520d-nvr0408.dtb
 
 dtb-$(CONFIG_TARGET_POPLAR) += hi3798cv200-poplar.dtb
 
