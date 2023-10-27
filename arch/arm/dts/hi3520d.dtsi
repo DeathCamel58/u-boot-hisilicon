@@ -65,13 +65,15 @@
             #address-cells = <1>;
             #size-cells = <0>;
             clock-frequency = <100000>;
-            status = "disabled";
+            pinctrl-names = "default";
+            pinctrl-0 = <&i2c_pmx_func>;
         };
 
         // TODO: Check if the clock name needs to change
         // The CRG is not loading. Loading the driver results in ENODEV response
-        crg: clock-reset-controller@20300000 {
-            compatible = "hisilicon,hi3520d-crg";
+        // ENODEV is due to the driver that matches `syscon` not being a UCLASS_CLK
+        crg: clock-reset-controller@20030000 {
+            compatible = "hisilicon,hi3520d-crg", "syscon", "simple-mfd";
             reg = <0x20300000 0x10000>;
             #clock-cells = <1>;
             #reset-cells = <2>;
@@ -84,7 +86,9 @@
 			interrupts = <GIC_SPI 4 IRQ_TYPE_LEVEL_HIGH>;
 			clocks = <&crg HI3520D_UART0_CLK>, <&crg HI3520D_UART0_CLK>;
 			clock-names = "uartclk", "apb_pclk";
-			status = "disable";
+            pinctrl-names = "default";
+            pinctrl-0 = <&uart0_pmx_func>;
+            bootph-all;
 		};
 
 		// TODO: Check the interrupts and clocks
@@ -94,6 +98,8 @@
 			interrupts = <GIC_SPI 5 IRQ_TYPE_LEVEL_HIGH>;
 			clocks = <&crg HI3520D_UART1_CLK>, <&crg HI3520D_UART1_CLK>;
 			clock-names = "uartclk", "apb_pclk";
+            pinctrl-names = "default";
+            pinctrl-0 = <&uart1_pmx_func>;
 			status = "disable";
 		};
 
@@ -148,6 +154,8 @@
             num-cs = <1>;
             #address-cells = <1>;
             #size-cells = <0>;
+            pinctrl-names = "default";
+            pinctrl-0 = <&spi0_pmx_func>;
 
             mx25l12805d@0 {
                 compatible = "mx25l12805d", "jedec,spi-nor";
@@ -228,7 +236,6 @@
 			num-cs = <1>;
 			#address-cells = <1>;
 			#size-cells = <0>;
-//			status = "disable";
 		};
 
         sysctl: system-controller@20050000 {
@@ -255,19 +262,122 @@
 		};
 
         apb: apb@20060000 {
-			compatible = "arm,hisi_apb";
-			reg = <0x20060000 0x1000>;
+            compatible = "simple-bus";
+            reg = <0x0 0x20060000 0x0 0x1000>;
+            #address-cells = <1>;
+            #size-cells = <1>;
+            ranges = <0x0 0x20060000 0x1000>;
 		};
 
-        pctrl: pctrl@200f0000 {
-            compatible = "hisilicon,hi3520d-pctrl";
-            reg = <0x0 0x200f0000 0x0 0x10000>;
-            #clock-cells = <1>;
-        };
+        pctrl: pinmux@200f0000 {
+			compatible = "pinctrl-single";
+			reg = <0x200f0000 0xC8>;
+			#pinctrl-cells = <1>;
+            pinctrl-single,register-width = <32>;
+            pinctrl-single,function-mask = <7>;
+            bootph-pre-ram;
+
+            uart0_pmx_func: uart-pins-0 {
+                pinctrl-single,pins = <
+                    0x4C 0x1 /* UART1_RTSN */
+                    0x50 0x1 /* UART1_RXD */
+                    0x54 0x1 /* UART1_CTSN */
+                    0x58 0x1 /* UART2_TXD */
+                >;
+            };
+
+            uart1_pmx_func: uart-pins-1 {
+                pinctrl-single,pins = <
+                    0x5C 0x1 /* UART1_RXD */
+                    0x60 0x1 /* UART2_TXD */
+                >;
+            };
+
+            spi0_pmx_func: spi-pins-0 {
+                pinctrl-single,pins = <
+                    0x30 0x1 /* SPI_SCLK */
+                    0x34 0x1 /* SPI_SDO */
+                    0x38 0x1 /* SPI_SDI */
+                    0x3C 0x1 /* SPI_CSN0 */
+                    0x40 0x1 /* SPI_CSN1 */
+                >;
+            };
+
+            vga_pmx_func: vga-pins {
+                pinctrl-single,pins = <
+                    0x0C 0x1 /* VGA_HS */
+                    0x10 0x1 /* VGA_VS */
+                >;
+            };
+
+            aio_pmx_func: aio-pins {
+                pinctrl-single,pins = <
+                    0x14 0x0 /* AIO_MCLK */
+                    0x18 0x0 /* AIO_BCLK_TX */
+                    0x1C 0x0 /* AIO_WS_TX */
+                    0x20 0x0 /* AIO_SD_TX */
+                    0x24 0x0 /* AIO_BCLK_RX */
+                    0x28 0x0 /* AIO_WS_RX */
+                    0x2C 0x0 /* AIO_SD_RX */
+                >;
+            };
+
+            i2c_pmx_func: i2c-pins {
+                pinctrl-single,pins = <
+                    0x44 0x1 /* I2C_SDA */
+                    0x48 0x1 /* I2C_SCL */
+                >;
+            };
+
+            ir_pmx_func: ir-pins {
+                pinctrl-single,pins = <
+                    0x64 0x1 /* IR_IN */
+                >;
+            };
+
+            usb_pmx_func: usb-pins {
+                pinctrl-single,pins = <
+                    0x68 0x1 /* USB0_OVRCUR */
+                    0x6C 0x1 /* USB0_PWREN */
+                    0x70 0x1 /* USB1_OVRCUR */
+                    0x74 0x1 /* USB1_PWREN */
+                >;
+            };
+
+            hdmi_pmx_func: hdmi-pins {
+                pinctrl-single,pins = <
+                    0x78 0x1 /* HDMI_HOTPLUG */
+                    0x7C 0x1 /* HDMI_CEC */
+                    0x80 0x1 /* HDMI_SDA */
+                    0x84 0x1 /* HDMI_SCL */
+                >;
+            };
+
+            sata_pmx_func: sata-pins {
+                pinctrl-single,pins = <
+                    0x88 0x1 /* SATA_LED_N0 */
+                    0x8C 0x1 /* SATA_LED_N1 */
+                >;
+            };
+
+            eth_pmx_func: eth-pins {
+                pinctrl-single,pins = <
+                    0x90 0x1 /* ETH_LED1 */
+                    0x94 0x1 /* ETH_LED0 */
+                >;
+            };
+
+            // TODO: Maybe map GPIO pins? Table 2-55 and 2-56 in datasheet
+
+            jtag_pmx_func: jtag-pins {
+                pinctrl-single,pins = <
+                    0x20 0x1 /* JTAG_SEL */
+                >;
+            };
+		};
 
 		perictrl: peripheral-controller@20050000 {
-			compatible = "hisilicon,hi3798cv200-perictrl", "syscon",
-				     "simple-mfd";
+			compatible = "hisilicon,hi3798cv200-perictrl", "syscon", "simple-mfd";
 			reg = <0x20050000 0x1000>;
 			#address-cells = <1>;
 			#size-cells = <1>;
@@ -307,7 +417,8 @@
             reset-names = "bus";
             phys = <&usb2_phy1_port0>;
             phy-names = "usb";
-            status = "disabled";
+            pinctrl-names = "default";
+            pinctrl-0 = <&usb_pmx_func>;
         };
 
         // TODO: Add EHCI @0x100B0000
@@ -329,6 +440,8 @@
             phy-mode = "mii";
             phy-handle = <&phy0>;
             hisilicon,phy-reset-delays-us = <10000 20000 20000>;
+            pinctrl-names = "default";
+            pinctrl-0 = <&eth_pmx_func>;
 
             /* Micrel KSZ8051RNL */
             phy0: ethernet-phy@0 {
