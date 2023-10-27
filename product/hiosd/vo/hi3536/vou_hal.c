@@ -308,6 +308,22 @@ HI_S32 SYS_HAL_SelVoHdDacClk(HI_U32 u32ClkSel)
     return 0;
 }
 
+HI_S32 SYS_HAL_VouBt1120ClkSel(HI_U32 u32ClkSel)
+{
+    HI_RegSetBit(u32ClkSel, 19, IO_ADDRESS(CRG_PERCTL13_ADDR));
+
+    return 0;
+}
+
+HI_S32 SYS_HAL_VouBt1120ClkEn(HI_BOOL bClkEn)
+{
+    HI_U32 u32Tmp = (bClkEn == HI_TRUE) ? 1 : 0;
+
+    HI_RegSetBit(u32Tmp, 20, IO_ADDRESS(CRG_PERCTL13_ADDR));
+
+    return 0;
+}
+
 HI_S32 SYS_HAL_SelVoHDMIClk(HI_U32 u32ClkSel)
 {
     HI_RegSetBit(u32ClkSel, 19, IO_ADDRESS(CRG_PERCTL15_ADDR));
@@ -374,25 +390,6 @@ HI_S32 SYS_HAL_VouDevClkEn(HI_S32 s32VoDev, HI_BOOL pbClkEn)
 HI_S32 SYS_HAL_VouHdOutClkSel(HI_U32 u32ClkSel)
 {
     HI_RegSetBit(u32ClkSel, 12, IO_ADDRESS(CRG_PERCTL13_ADDR));
-    return 0;
-}
-
-HI_S32 SYS_HAL_VouBusClkEn(HI_BOOL pbClkEn)
-{
-    volatile HI_U32 u32Tmp = (pbClkEn == HI_TRUE) ? 1 : 0;
-
-    HI_RegSetBit(u32Tmp, 8, IO_ADDRESS(CRG_PERCTL13_ADDR));
-
-    return 0;
-}
-
-HI_S32 SYS_HAL_HdmiResetSel(HI_BOOL bReset)
-{
-    volatile HI_U32 u32Tmp = (bReset == HI_TRUE) ? 1 : 0;
-     
-    HI_RegSetBit(u32Tmp, 0, IO_ADDRESS(CRG_PERCTL15_ADDR));
-    HI_RegSetBit(u32Tmp, 1, IO_ADDRESS(CRG_PERCTL15_ADDR));
-        
     return 0;
 }
 
@@ -688,6 +685,30 @@ HI_VOID HAL_SYS_SetOutstanding(HI_VOID)
     return ;
 }
 
+/* AXI Master select */
+HI_VOID HAL_SYS_SetAxiMaster(HI_VOID)
+{
+    volatile U_VOAXISEL VOAXISEL;
+
+    VOAXISEL.u32 = HAL_ReadReg((HI_U32*)&(pVoReg->VOAXISEL.u32));
+    VOAXISEL.bits.v0_axi_sel = 0;
+    VOAXISEL.bits.v1_axi_sel = 0;
+    VOAXISEL.bits.v3_axi_sel = 0;
+    VOAXISEL.bits.v4_axi_sel = 0;
+    VOAXISEL.bits.g0_axi_sel = 1;
+    VOAXISEL.bits.g1_axi_sel = 1;
+    VOAXISEL.bits.g2_axi_sel = 1;
+    VOAXISEL.bits.g3_axi_sel = 1;
+    VOAXISEL.bits.g4_axi_sel = 1;
+    VOAXISEL.bits.wbc_dhd_axi_sel = 0;
+    VOAXISEL.bits.wbc_g0_axi_sel = 1;
+    VOAXISEL.bits.wbc_g4_axi_sel = 1;
+    VOAXISEL.bits.para_axi_sel = 0;
+    HAL_WriteReg((HI_U32*)&(pVoReg->VOAXISEL.u32), VOAXISEL.u32);
+    
+    return;
+}
+
 HI_VOID HAL_SYS_SetRdBusId(HI_U32 bMode)
 {
     
@@ -793,6 +814,21 @@ HI_BOOL HAL_DISP_SetIntfSyncInv(HAL_DISP_INTF_E enIntf, HAL_DISP_SYNCINV_S *pstI
     return HI_TRUE;
 }
 
+HI_BOOL  HAL_DISP_SetIntfMuxDefaultSel(HI_VOID)
+{
+    volatile U_VO_MUX VO_MUX;
+    
+    VO_MUX.u32 = HAL_ReadReg((HI_U32*)&(pVoReg->VO_MUX.u32));
+    VO_MUX.bits.bt1120_sel = 2; 
+    VO_MUX.bits.hdmi_sel = 2;
+    VO_MUX.bits.vga_sel = 2;
+    VO_MUX.bits.sddate_sel = 4;
+
+    HAL_WriteReg((HI_U32*)&(pVoReg->VO_MUX.u32), VO_MUX.u32);
+    
+    return HI_TRUE;
+}
+
 /* ��������ӿڵ�mux����ѡ��*/
 HI_BOOL  HAL_DISP_SetIntfMuxSel(HAL_DISP_OUTPUTCHANNEL_E enChan,HAL_DISP_INTF_E enIntf)
 {
@@ -806,24 +842,11 @@ HI_BOOL  HAL_DISP_SetIntfMuxSel(HAL_DISP_OUTPUTCHANNEL_E enChan,HAL_DISP_INTF_E 
     VO_MUX.u32 = HAL_ReadReg((HI_U32*)&(pVoReg->VO_MUX.u32));    
     switch(enIntf)
     {
-        case HAL_DISP_INTF_LCD:
-        {
-            VO_MUX.bits.digital_sel = 2;
-            VO_MUX.bits.lcd_sel = enChan; 
-            break;
-        }
         case HAL_DISP_INTF_BT1120:
         {
-            VO_MUX.bits.digital_sel = 0;
             VO_MUX.bits.bt1120_sel = enChan; 
             break;
         }        
-        case HAL_DISP_INTF_BT656:
-        {
-            VO_MUX.bits.digital_sel = 1;
-            VO_MUX.bits.bt656_sel = enChan; 
-            break;
-        }
         case HAL_DISP_INTF_HDMI:
         {
             VO_MUX.bits.hdmi_sel = enChan;
@@ -834,12 +857,6 @@ HI_BOOL  HAL_DISP_SetIntfMuxSel(HAL_DISP_OUTPUTCHANNEL_E enChan,HAL_DISP_INTF_E 
             VO_MUX.bits.vga_sel = enChan;
             break;
         }
-        case HAL_DISP_INTF_HDDATE:
-        {
-            VO_MUX.bits.hddate_sel = enChan;
-            break;
-        }
-
         case HAL_DISP_INTF_CVBS:
         {
             VO_MUX.bits.sddate_sel = 4;
@@ -852,7 +869,7 @@ HI_BOOL  HAL_DISP_SetIntfMuxSel(HAL_DISP_OUTPUTCHANNEL_E enChan,HAL_DISP_INTF_E 
             return HI_FALSE;
         }
     }
-    
+    VO_MUX.bits.digital_sel = 2; 
     HAL_WriteReg((HI_U32*)&(pVoReg->VO_MUX.u32), VO_MUX.u32); 
     return HI_TRUE;
 }
@@ -1207,6 +1224,141 @@ HI_BOOL HAL_DISP_SetDateCoeff22(HAL_DISP_OUTPUTCHANNEL_E enChan, HI_U32 u32Data)
         DATE_COEFF22.u32 = pVoReg->DATE_COEFF22.u32;
         DATE_COEFF22.bits.video_phase_delta = u32Data;
         pVoReg->DATE_COEFF22.u32 = DATE_COEFF22.u32;
+    }
+    else
+    {
+        HAL_PRINT("Error channel id found in %s: L%d\n",__FUNCTION__, __LINE__);
+        return HI_FALSE;
+    }
+    
+    return HI_TRUE;
+}
+
+HI_BOOL HAL_DISP_SetDateCoeff24(HAL_DISP_OUTPUTCHANNEL_E enChan, HI_U32 u32Data)
+{
+    if (HAL_DISP_CHANNEL_DSD0 == enChan)
+    {
+        pVoReg->DATE_COEFF24.u32 = u32Data;
+    }
+    else
+    {
+        HAL_PRINT("Error channel id found in %s: L%d\n",__FUNCTION__, __LINE__);
+        return HI_FALSE;
+    }
+    
+    return HI_TRUE;
+}
+
+HI_BOOL HAL_DISP_SetDateCoeff50(HAL_DISP_OUTPUTCHANNEL_E enChan, HI_U32 u32Data)
+{
+    if (HAL_DISP_CHANNEL_DSD0 == enChan)
+    {
+        pVoReg->DATE_COEFF50.u32 = u32Data;
+    }
+    else
+    {
+        HAL_PRINT("Error channel id found in %s: L%d\n",__FUNCTION__, __LINE__);
+        return HI_FALSE;
+    }
+    
+    return HI_TRUE;
+}
+
+HI_BOOL HAL_DISP_SetDateCoeff51(HAL_DISP_OUTPUTCHANNEL_E enChan, HI_U32 u32Data)
+{
+    if (HAL_DISP_CHANNEL_DSD0 == enChan)
+    {
+        pVoReg->DATE_COEFF51.u32 = u32Data;
+    }
+    else
+    {
+        HAL_PRINT("Error channel id found in %s: L%d\n",__FUNCTION__, __LINE__);
+        return HI_FALSE;
+    }
+    
+    return HI_TRUE;
+}
+
+HI_BOOL HAL_DISP_SetDateCoeff52(HAL_DISP_OUTPUTCHANNEL_E enChan, HI_U32 u32Data)
+{
+    if (HAL_DISP_CHANNEL_DSD0 == enChan)
+    {
+        pVoReg->DATE_COEFF52.u32 = u32Data;
+    }
+    else
+    {
+        HAL_PRINT("Error channel id found in %s: L%d\n",__FUNCTION__, __LINE__);
+        return HI_FALSE;
+    }
+    
+    return HI_TRUE;
+}
+
+HI_BOOL HAL_DISP_SetDateCoeff53(HAL_DISP_OUTPUTCHANNEL_E enChan, HI_U32 u32Data)
+{
+    if (HAL_DISP_CHANNEL_DSD0 == enChan)
+    {
+        pVoReg->DATE_COEFF53.u32 = u32Data;
+    }
+    else
+    {
+        HAL_PRINT("Error channel id found in %s: L%d\n",__FUNCTION__, __LINE__);
+        return HI_FALSE;
+    }
+    
+    return HI_TRUE;
+}
+
+HI_BOOL HAL_DISP_SetDateCoeff54(HAL_DISP_OUTPUTCHANNEL_E enChan, HI_U32 u32Data)
+{
+    if (HAL_DISP_CHANNEL_DSD0 == enChan)
+    {
+        pVoReg->DATE_COEFF54.u32 = u32Data;
+    }
+    else
+    {
+        HAL_PRINT("Error channel id found in %s: L%d\n",__FUNCTION__, __LINE__);
+        return HI_FALSE;
+    }
+    
+    return HI_TRUE;
+}
+
+HI_BOOL HAL_DISP_SetDateCoeff55(HAL_DISP_OUTPUTCHANNEL_E enChan, HI_U32 u32Data)
+{
+    if (HAL_DISP_CHANNEL_DSD0 == enChan)
+    {
+        pVoReg->DATE_COEFF55.u32 = u32Data;
+    }
+    else
+    {
+        HAL_PRINT("Error channel id found in %s: L%d\n",__FUNCTION__, __LINE__);
+        return HI_FALSE;
+    }
+    
+    return HI_TRUE;
+}
+
+HI_BOOL HAL_DISP_SetDateCoeff57(HAL_DISP_OUTPUTCHANNEL_E enChan, HI_U32 u32Data)
+{
+    if (HAL_DISP_CHANNEL_DSD0 == enChan)
+    {
+        pVoReg->DATE_COEFF57.u32 = u32Data;
+    }
+    else
+    {
+        HAL_PRINT("Error channel id found in %s: L%d\n",__FUNCTION__, __LINE__);
+        return HI_FALSE;
+    }
+    
+    return HI_TRUE;
+}
+
+HI_BOOL HAL_DISP_SetDateCoeff61(HAL_DISP_OUTPUTCHANNEL_E enChan, HI_U32 u32Data)
+{
+    if (HAL_DISP_CHANNEL_DSD0 == enChan)
+    {
+        pVoReg->DATE_COEFF61.u32 = u32Data;
     }
     else
     {
@@ -1933,8 +2085,6 @@ HI_BOOL HAL_LAYER_SetLayerInRect(HAL_DISP_LAYER_E enLayer, RECT_S *pstRect)
 HI_BOOL HAL_LAYER_SetLayerOutRect(HAL_DISP_LAYER_E enLayer, RECT_S *pstRect)
 {
     U_V0_ORESO V0_ORESO;
-    //U_G0_ORESO G0_ORESO;
-    //U_G0SFPOS G0SFPOS;
     volatile  HI_U32 addr_REG;
     
     if((LAYER_VHD_START <= enLayer)&&(enLayer <= LAYER_VSD_END))
@@ -1947,13 +2097,7 @@ HI_BOOL HAL_LAYER_SetLayerOutRect(HAL_DISP_LAYER_E enLayer, RECT_S *pstRect)
     }   
     else if((LAYER_GFX_START <= enLayer)&&(enLayer <= LAYER_GFX_END))
     {
-        #if 0
-        addr_REG = Vou_GetAbsAddr(enLayer,(HI_U32)&(pVoReg->G0_IRESO.u32));
-        G0_IRESO.u32 = HAL_ReadReg((HI_U32*)addr_REG);
-        G0_IRESO.bits.iw = pstRect->u32Width- 1;
-        G0_IRESO.bits.ih = pstRect->u32Height- 1;
-        HAL_WriteReg((HI_U32*)addr_REG, G0_IRESO.u32); 
-        #endif
+        
     }
     else
     {
@@ -1999,8 +2143,6 @@ HI_BOOL HAL_LAYER_SetZmeEnable(HAL_DISP_LAYER_E enLayer,
 {
     volatile U_V0_HSP V0_HSP;
     volatile U_V0_VSP V0_VSP;
-    //U_G0HSP G0HSP;
-   // U_G0VSP G0VSP;
     volatile U_WBC_DHD0_ZME_HSP WBC_DHD0_ZME_HSP;
     volatile U_WBC_DHD0_ZME_VSP WBC_DHD0_ZME_VSP;
 
@@ -2292,7 +2434,6 @@ HI_BOOL HAL_LAYER_SetZmeVerType(HAL_DISP_LAYER_E enLayer, HI_U32 uVerType)
 HI_BOOL HAL_LAYER_SetVerRatio(HAL_DISP_LAYER_E enLayer, HI_U32 uRatio)
 {
     volatile U_V0_VSR V0_VSR;
-    //volatile U_G0VSR G0VSR;
     volatile U_WBC_DHD0_ZME_VSR WBC_DHD0_ZME_VSR;
 
     volatile HI_U32 addr_REG;
@@ -2364,7 +2505,6 @@ HI_BOOL HAL_GRAPHIC_SetGfxAddr(HAL_DISP_LAYER_E enLayer, HI_U32 u32LAddr)
 {
     U_G0_ADDR G0_ADDR;
     volatile  HI_U32 addr_REG;
-    //printk("Vou_SetGfxAddr %d\n",enLayer);
 
     if((LAYER_GFX_START <= enLayer)&&(enLayer <= LAYER_GFX_END))
     {
@@ -2577,7 +2717,6 @@ HI_BOOL HAL_CBM_SetCbmAttr(HAL_DISP_LAYER_E enLayer, HAL_DISP_OUTPUTCHANNEL_E en
 HI_BOOL HAL_CBM_SetCbmBkg(HI_U32 bMixerId, HAL_DISP_BKCOLOR_S *pstBkg)
 {
     U_CBM_BKG1 CBM_BKG1;
-    //U_CBMBKG2 CBMBKG2;
     U_CBM_BKG2 CBM_BKG2;
     U_MIXDSD_BKG MIXDSD_BKG;
 

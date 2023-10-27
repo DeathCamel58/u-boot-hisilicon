@@ -17,7 +17,7 @@ int hieth_glb_preinit_dummy(struct hieth_netdev_local *ld)
 
 	/*soft reset*/
 	hieth_writel_bits(ld, 1, GLB_SOFT_RESET, BITS_ETH_SOFT_RESET);
-	udelay(1000);
+	mdelay(1);
 	hieth_writel_bits(ld, 0, GLB_SOFT_RESET, BITS_ETH_SOFT_RESET);
 
 	hieth_set_endian_mode(ld, HIETH_LITTLE_ENDIAN);

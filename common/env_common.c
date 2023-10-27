@@ -61,8 +61,14 @@ uchar default_environment[] = {
 #ifdef	CONFIG_BOOTARGS
 	"bootargs="	CONFIG_BOOTARGS			"\0"
 #endif
+#ifdef	CONFIG_SLAVE_BOOTARGS
+	"slave_bootargs="	CONFIG_SLAVE_BOOTARGS	"\0"
+#endif
 #ifdef	CONFIG_BOOTCOMMAND
 	"bootcmd="	CONFIG_BOOTCOMMAND		"\0"
+#endif
+#ifdef	CONFIG_SLAVE_BOOTCMD
+	"slave_bootcmd="	CONFIG_SLAVE_BOOTCMD	"\0"
 #endif
 #ifdef	CONFIG_RAMBOOTCOMMAND
 	"ramboot="	CONFIG_RAMBOOTCOMMAND		"\0"
@@ -78,6 +84,9 @@ uchar default_environment[] = {
 #endif
 #ifdef	CONFIG_LOADS_ECHO
 	"loads_echo="	MK_STR(CONFIG_LOADS_ECHO)	"\0"
+#endif
+#ifdef	CONFIG_USE_MDIO
+	"use_mdio="	CONFIG_USE_MDIO			"\0"
 #endif
 #ifdef	CONFIG_MDIO_INTF
 	"mdio_intf="	CONFIG_MDIO_INTF	        "\0"

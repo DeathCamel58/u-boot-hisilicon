@@ -31,7 +31,7 @@ struct nand_flash_dev nand_flash_ids[] = {
 	{"NAND 1MiB 3,3V 8-bit",	0xe8, 256, 1, 0x1000, 0},
 	{"NAND 1MiB 3,3V 8-bit",	0xec, 256, 1, 0x1000, 0},
 	{"NAND 2MiB 3,3V 8-bit",	0xea, 256, 2, 0x1000, 0},
-	{"NAND 4MiB 3,3V 8-bit", 	0xd5, 512, 4, 0x2000, 0},
+	{"NAND 4MiB 3,3V 8-bit",	0xd5, 512, 4, 0x2000, 0},
 	{"NAND 4MiB 3,3V 8-bit",	0xe3, 512, 4, 0x2000, 0},
 	{"NAND 4MiB 3,3V 8-bit",	0xe5, 512, 4, 0x2000, 0},
 	{"NAND 8MiB 3,3V 8-bit",	0xd6, 512, 8, 0x2000, 0},
@@ -122,8 +122,8 @@ struct nand_flash_dev nand_flash_ids[] = {
 	 * writes possible, but not implemented now
 	 */
 	{"AND 128MiB 3,3V 8-bit",	0x01, 2048, 128, 0x4000,
-	 NAND_IS_AND | NAND_NO_AUTOINCR |NAND_NO_READRDY | NAND_4PAGE_ARRAY |
-	 BBT_AUTO_REFRESH
+	 NAND_IS_AND | NAND_NO_AUTOINCR | NAND_NO_READRDY | NAND_4PAGE_ARRAY
+	| BBT_AUTO_REFRESH
 	},
 
 	{NULL,}
@@ -133,14 +133,22 @@ struct nand_flash_dev nand_flash_ids[] = {
 *	Manufacturer ID list
 */
 struct nand_manufacturers nand_manuf_ids[] = {
-	{NAND_MFR_TOSHIBA, "Toshiba"},
-	{NAND_MFR_SAMSUNG, "Samsung"},
-	{NAND_MFR_FUJITSU, "Fujitsu"},
-	{NAND_MFR_NATIONAL, "National"},
-	{NAND_MFR_RENESAS, "Renesas"},
-	{NAND_MFR_STMICRO, "ST Micro"},
-	{NAND_MFR_HYNIX, "Hynix"},
-	{NAND_MFR_MICRON, "Micron"},
-	{NAND_MFR_AMD, "AMD"},
-	{0x0, "Unknown"}
+	{NAND_MFR_TOSHIBA,	"Toshiba"},
+	{NAND_MFR_SAMSUNG,	"Samsung"},
+	{NAND_MFR_FUJITSU,	"Fujitsu"},
+	{NAND_MFR_NATIONAL,	"National"},
+	{NAND_MFR_RENESAS,	"Renesas"},
+	{NAND_MFR_ST_MICRO,	"ST/Micro"},
+	{NAND_MFR_HYNIX,	"Hynix"},
+	{NAND_MFR_MICRON,	"Micron"},
+	{NAND_MFR_AMD,		"AMD/Spansion"},
+	{NAND_MFR_MACRONIX,	"Macronix"},
+	{NAND_MFR_GD_ESMT,	"GD/ESMT"},
+	{NAND_MFR_EON,		"Eon"},
+	{NAND_MFR_WINBOND,	"Winbond"},
+	{NAND_MFR_ATO,		"ATO"},
+	{NAND_MFR_MXIC,		"MXIC"},
+	{NAND_MFR_ALL_FLASH,	"All-flash"},
+	{NAND_MFR_PARAGON,	"Paragon"},
+	{0x0,			"Unknown"}
 };

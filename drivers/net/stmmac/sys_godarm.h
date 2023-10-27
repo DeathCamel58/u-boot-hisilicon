@@ -9,3 +9,4 @@
 
 unsigned long get_tnkclk(unsigned long busclk);
 void reset_mac_interface_single(int val);
+void stmmac_mac_core_reset(void);

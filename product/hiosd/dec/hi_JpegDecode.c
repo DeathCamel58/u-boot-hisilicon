@@ -1,38 +1,14 @@
-/******************************************************************************
-
-  Copyright (C), 2001-2011, Hisilicon Tech. Co., Ltd.
-
- ******************************************************************************
-  File Name     :
-  Version       : Initial Draft
-  Author        : Hisilicon multimedia software group
-  Created       : 2005/08/25
-  Last Modified :
-  Description   :
-
-  Function List :
-
-  History       :
-  1.Date        : 2005/08/25
-    Author      : y43135
-    Modification: Created file
-
-******************************************************************************/
-
 #include <common.h>
 #include <command.h>
 #include <malloc.h>
-//#include <devices.h>
 #include <version.h>
 #include <net.h>
 #include <asm/io.h>
 #include <asm/arch/platform.h>
 #include <asm/sizes.h>
 #include <config.h>
-#include "jpeglib.h"
 #include "jpeg_hdec_rwreg.h"
 #include "hi_drv_jpeg_reg.h"
-
 
 #define MAKEWORD(a, b)      ((UINT16)((unsigned char)(a)) | ((UINT16)((unsigned char)(b)) << 8))
 
@@ -84,10 +60,6 @@ const int unzig_zag[80] = {
 #define MAX2(x,y)       ( (x)>(y) ? (x):(y) )
 #define HI_OK 0
 #define HI_ERROR 1
-typedef unsigned int UINT32;
-typedef unsigned char UINT8;
-typedef unsigned short UINT16;
-
 
 //UINT32 LoadJpegFile(void *pImg);
 int InitTag(void);
@@ -140,11 +112,8 @@ int iclip[1024];
 int LineBytes;
 int value_type; 
 
-#ifndef HARD_DEC
-extern  unsigned char hilogo[];
-#else
 extern unsigned char * hilogo;
-#endif
+
 extern  unsigned long jpeg_size;
 
 #define JPEGD_ALAIN(u32Val, u32Align)	((u32Val +u32Align -1)&(~(u32Align-1)))
@@ -169,42 +138,46 @@ int Jpeg_HDEDC_Uboot(void)
         
     volatile unsigned int * crgReg = (unsigned int *)JPGD_CRG_REG_PHYADDR;
     * crgReg |= JPGD_CLOCK_ON ;
+	* crgReg |= JPGD_RESET_REG_VALUE;
+
+    while(1)
+    {       
+        result = JPEG_HDEC_ReadReg((HI_CHAR *)JPGD_REG_BASEADDR, JPGD_REG_START);
+        if (0 == (result & 0x2))
+        {
+            break;
+        }
+    }
+
+	
     * crgReg &= JPGD_UNRESET_REG_VALUE;
     
-    /*设置Stride*/
-    LineBytes = JPEGD_ALAIN((unsigned int)ImgWidth, 128);
+    LineBytes = JPEGD_ALAIN((unsigned int)ImgWidth, 64);
     JPEG_HDEC_WriteReg((HI_CHAR *)JPGD_REG_BASEADDR, JPGD_REG_STRIDE, LineBytes << 16| LineBytes);
 
-    /*统计亮度和*/
     JPEG_HDEC_WriteReg((HI_CHAR *)JPGD_REG_BASEADDR, JPGD_REG_LPIXSUM1,0x80000000);    
 
-    /*设置图片大小*/    
     size = (unsigned int)(((unsigned int)tmpWidth+ 0x0f)  >> 4)  \
          | (unsigned int)(((unsigned int)tmpHeight + 0x0f) >> 4 )<< 16 ;
 
     JPEG_HDEC_WriteReg((HI_CHAR *)JPGD_REG_BASEADDR, JPGD_REG_PICSIZE,size);
 
-    /*Jpeg图片类型420*/
     JPEG_HDEC_WriteReg((HI_CHAR *)JPGD_REG_BASEADDR, JPGD_REG_PICTYPE,value_type);
     
-     /*Y，UV输出地址*/  
      JPEG_HDEC_WriteReg((HI_CHAR *)JPGD_REG_BASEADDR, JPGD_REG_YSTADDR, (int)lpPtr);  
      pUvAddr = (unsigned char*)((unsigned char *)lpPtr + LineBytes * JPEGD_ALAIN((unsigned int)ImgHeight, 16));
 
      JPEG_HDEC_WriteReg((HI_CHAR *)JPGD_REG_BASEADDR, JPGD_REG_UVSTADDR, (int)pUvAddr);  
      printf("PicType: %x ,Output Addr, Y: %p,UV: %p\n",value_type, lpPtr, pUvAddr);
 
-     /*裸数据大小*/ 
-     u32Offset = (unsigned int)lp - (unsigned int)hilogo;
+      u32Offset = (unsigned int)lp - (unsigned int)hilogo;
      size = jpeg_size - u32Offset;   
      
-     /*硬件地址*/  
      pStartStreamPhy =(unsigned char *)JPEGD_ALAIN((unsigned int)hilogo, u32Align);
      pEndStreamPhy = (unsigned char *)JPEGD_ALAIN((unsigned int)(hilogo)+jpeg_size, u32Align);
      JPEG_HDEC_WriteReg((HI_CHAR *)JPGD_REG_BASEADDR, JPGD_REG_STADDR, (int)pStartStreamPhy);
      JPEG_HDEC_WriteReg((HI_CHAR *)JPGD_REG_BASEADDR, JPGD_REG_ENDADDR,(int)pEndStreamPhy);   
 
-     /*码流BUFFER地址*/ 
      pStartStreamPhy = lp;
      pEndStreamPhy = (unsigned char *)((unsigned int)lp + size);
      
@@ -214,13 +187,13 @@ int Jpeg_HDEDC_Uboot(void)
      JPEG_HDEC_WriteReg((HI_CHAR *)JPGD_REG_BASEADDR,JPGD_REG_OUTTYPE,0x4);     
      JPEG_HDEC_WriteReg((HI_CHAR *)JPGD_REG_BASEADDR,JPGD_REG_SCALE, 0x3c);
 
-     /*采样因子*/
+     JPEG_HDEC_WriteReg((HI_CHAR *)JPGD_REG_BASEADDR,JPGD_REG_DRI, restart);
+
      JPEG_HDEC_WriteReg((HI_CHAR *)JPGD_REG_BASEADDR, JPGD_REG_SAMPLINGFACTOR,
      SampRate_Y_H << 20 | SampRate_Y_V<< 16 | SampRate_U_H << 12 | 
      SampRate_U_V<< 8 | SampRate_V_V<< 4 | SampRate_V_V
      );       
  
-     /*量化表*/
     for(l = 0; l < 64; l++)
     {        
          BlockBuffer[l] = YQtTable[l] + (UQtTable[l]<<8) + (VQtTable[l]<<16);
@@ -229,7 +202,6 @@ int Jpeg_HDEDC_Uboot(void)
 
     //JPEG_HDEC_CpyData2Reg(JPGD_REG_BASEADDR,qt_test, JPGD_REG_QUANT,256);
 
-     /*Huf DC表*/
      memset(value_ptr, 0,sizeof(value_ptr));     
      for(l = 0;l < 16; l++)
      {
@@ -243,7 +215,6 @@ int Jpeg_HDEDC_Uboot(void)
      }        
      JPEG_HDEC_Uboot_SetDC(&value_ptr[0]);
      
-     /*Huf AC表*/
      memset(value_ptr, 0,sizeof(value_ptr));     
      for(l = 0;l < 16; l++)
      {
@@ -257,16 +228,13 @@ int Jpeg_HDEDC_Uboot(void)
      }     
      JPEG_HDEC_Uboot_SetAC(&value_ptr[0]);    
  
-      /*中断屏蔽*/   
      JPEG_HDEC_WriteReg((HI_CHAR *)JPGD_REG_BASEADDR, JPGD_REG_INTMASK, 0x17);
 
      //JPEG_HDEC_WriteReg(JPGD_REG_BASEADDR, JPGD_REG_INT,0x1f);
      JPEG_HDEC_WriteReg((HI_CHAR *)JPGD_REG_BASEADDR, JPGD_REG_RESUME,0x02);
 
-    /*启动解码*/
-    JPEG_HDEC_WriteReg((HI_CHAR *)JPGD_REG_BASEADDR, JPGD_REG_START,0x05);
+    JPEG_HDEC_WriteReg((HI_CHAR *)JPGD_REG_BASEADDR, JPGD_REG_START,0x01);
 
-    /*读取中断状态*/
     while(1)
     {       
         result = JPEG_HDEC_ReadReg((HI_CHAR *)JPGD_REG_BASEADDR, JPGD_REG_INT);
@@ -278,12 +246,10 @@ int Jpeg_HDEDC_Uboot(void)
 
     if (result & 0x01)
     {   
-        /* 调试时注释这两行 */
-        * crgReg |= JPGD_RESET_REG_VALUE;
-        * crgReg &= JPGD_CLOCK_OFF;
+        //* crgReg |= JPGD_RESET_REG_VALUE;
+        //* crgReg &= JPGD_CLOCK_OFF;
        return FUNC_OK;
     }
-     //复位
      printf("Decoded...%x\n",result);
      return HI_ERROR;
 }
@@ -297,13 +263,13 @@ UINT32 LoadJpegFile(void *pImg)
     InitTable();
 
     funcret = InitTag();
-    if(funcret != FUNC_OK)    /* 将Jpeg文件读入内存 */
+    if(funcret != FUNC_OK)    
     {
     	printf("InitTag error\n");
         return HI_ERROR;
     }
 
-    lpPtr = pImg;    /* 分配变换后的存储空间 */
+    lpPtr = pImg;    
 
     if((SampRate_Y_H == 0) || (SampRate_Y_V == 0))
     {
@@ -336,7 +302,7 @@ UINT32 LoadJpegFile(void *pImg)
 
     printf("<<imgwidth=%d, imgheight=%d, linebytes=%d>>\n", ImgWidth, ImgHeight, LineBytes);
 
-    if(funcret == FUNC_OK)      /* 解码成功 */
+    if(funcret == FUNC_OK)     
     {
     	printf("decode success!!!!\n");
         return HI_OK;
@@ -357,24 +323,38 @@ int InitTag(void)
     UINT8 *lptemp;
     int  temp2;
     finish = HI_ERROR;
-    lp = lpJpegBuf + 2;   /* 跳过两个字节SOI(0xFF，0xD8 Start of Image) */
+    lp = lpJpegBuf + 2;   /* SOI */
     while(finish != HI_OK)
     {
-        id = *(lp + 1);   /* 取出低位字节(高位在前，低位在后) */
-        lp += 2;       /* 跳过取出的字节 */
+        id = *(lp + 1);   
+        lp += 2;       
         switch(id)
         {
             case M_APP0:
-                llength = MAKEWORD(*(lp + 1),*lp);  /* MAKEWORD 转换Motorlora 与 intel 数据格式 */
+                llength = MAKEWORD(*(lp + 1),*lp);  
                 lp += llength;  /* Skip JFIF segment marker */
                 break;
             case M_DQT:
                 temp2 = 2;
-                llength = MAKEWORD(*(lp + 1),*lp); /* (量化表长度) */
-                qt_table_index = *(lp + 2) & 0x0f;/* 量化表信息bit 0..3: QT 号(0..3, 否则错误) */
-                                             /* bit 4..7: QT 精度, 0 = 8 bit, 否则 16 bit */
-                lptemp = lp + 3;       /* n 字节的 QT, n = 64*(精度+1) */
-                if(llength < 80)
+                llength = MAKEWORD(*(lp + 1), *lp);
+
+                if (llength > 256)
+                {
+                    printf("M_DQT len %d is out of range!\n", llength);
+                    return FUNC_FORMAT_ERROR;
+                }
+
+                qt_table_index = *(lp + 2) & 0x0f;
+
+                if (qt_table_index >= 3)
+                {
+                    printf("qt_table_index err %d\n", qt_table_index);
+                    return FUNC_FORMAT_ERROR;
+                }
+
+                lptemp = lp + 3;
+
+                if (llength < 80)
                 {
                     for(i = 0;i < 64;i++)
                     {
@@ -419,41 +399,41 @@ int InitTag(void)
                     }
                     #endif
                 }
-  			    lp += llength; /* 跳过量化表 */
+  			    lp += llength; 
                 break;
-            case M_SOF0:      /* 帧开始 (baseline JPEG 0xFF,0xC0) */
-	 		    llength = MAKEWORD(*(lp + 1),*lp);         /* 长度 (高字节, 低字节), 8+components*3 */
-	 		    ImgHeight = MAKEWORD(*(lp + 4),*(lp + 3));/* 图片高度 (高字节, 低字节), 如果不支持 DNL 就必须 >0 */
-	 		    ImgWidth = MAKEWORD(*(lp + 6),*(lp + 5)); /* 图片宽度 (高字节, 低字节), 如果不支持 DNL 就必须 >0 */
-                comp_num = *(lp + 7);                   /* components 数量(1 byte), 灰度图是 1, YCbCr/YIQ 彩色图是 3, CMYK 彩色图是 4 */
+            case M_SOF0:     
+	 		    llength = MAKEWORD(*(lp + 1),*lp);         
+	 		    ImgHeight = MAKEWORD(*(lp + 4),*(lp + 3));
+	 		    ImgWidth = MAKEWORD(*(lp + 6),*(lp + 5)); 
+                comp_num = *(lp + 7);                  
 	            if((comp_num != 1) && (comp_num != 3))
 	            {
 	                return FUNC_FORMAT_ERROR;
 	            }
 	            if(comp_num == 3)
 	            {
-    				comp_index[0] = *(lp + 8);          /* component id (1 = Y, 2 = Cb, 3 = Cr, 4 = I, 5 = Q) */
-    	  			SampRate_Y_H = (*(lp + 9)) >> 4;      /* 水平采样系数 */
-    				SampRate_Y_V = (*(lp + 9)) & 0x0f;    /* 水平采样系数 */
-    	  			YQtTable = (int *)qt_table[*(lp + 10)]; /* 通过量化表号取得量化表地址 */
+    				comp_index[0] = *(lp + 8);         
+    	  			SampRate_Y_H = (*(lp + 9)) >> 4;      
+    				SampRate_Y_V = (*(lp + 9)) & 0x0f;    
+    	  			YQtTable = (int *)qt_table[*(lp + 10)];
                                   /*  ShowMessage(IntToStr(YQtTable^)); */
 
     				comp_index[1] = *(lp  + 11);         /* component id */
-    				SampRate_U_H = (*(lp + 12)) >> 4;     /* 水平采样系数 */
-    	  			SampRate_U_V = (*(lp + 12)) & 0x0f;   /* 水平采样系数 */
-    	  			UQtTable = (int *)qt_table[*(lp + 13)];  /* 通过量化表号取得量化表地址 */
+    				SampRate_U_H = (*(lp + 12)) >> 4;     
+    	  			SampRate_U_V = (*(lp + 12)) & 0x0f;   
+    	  			UQtTable = (int *)qt_table[*(lp + 13)];  
 
     	  			comp_index[2] = *(lp + 14);         /* component id */
-    	  			SampRate_V_H = (*(lp  + 15)) >> 4;     /* 水平采样系数 */
-    	  			SampRate_V_V = (*(lp + 15)) & 0x0f;   /* 水平采样系数 */
-    				VQtTable = (int *)qt_table[*(lp + 16)];   /* 通过量化表号取得量化表地址	*/                      
+    	  			SampRate_V_H = (*(lp  + 15)) >> 4;    
+    	  			SampRate_V_V = (*(lp + 15)) & 0x0f;   
+    				VQtTable = (int *)qt_table[*(lp + 16)];                        
                 }
 	            else
 	            {
     	  			comp_index[0] = *(lp + 8);
     				SampRate_Y_H = (*(lp + 9)) >> 4;
     	  			SampRate_Y_V = (*(lp + 9)) & 0x0f;
-    	  			YQtTable = (int *)qt_table[*(lp + 10)];  /* 灰度图的量化表都一样 */
+    	  			YQtTable = (int *)qt_table[*(lp + 10)]; 
 
     				comp_index[1] = *(lp + 8);
     	  			SampRate_U_H = 1;
@@ -469,7 +449,7 @@ int InitTag(void)
                 if (comp_num == 1)
                  {
                       if (SampRate_Y_H==SampRate_Y_V)
-                      {/**不管采样因子是多少都按照(1*1)配置，T81协议36页**/
+                      {
                             value_type = 0;
                             SampRate_Y_H = 1;
                             SampRate_Y_V = 1;                          
@@ -509,27 +489,20 @@ int InitTag(void)
                  }                
 	            lp += llength;
                 break;
-            case M_DHT:  /* 定义 Huffman Table(0xFF,0xC4) */
-    			llength = MAKEWORD(*(lp + 1),*lp);       /* 长度 (高字节, 低字节) */
+            case M_DHT:  /* Huffman Table(0xFF,0xC4) */
+    			llength = MAKEWORD(*(lp + 1),*lp);      
 				
-				/* 
-				   HSCP201407070001: 客户JPEG图片解码错误。
-				   原因分析: 这里不应该限制当huffman表语法长度<0xd0时就认为图片只有一张huffman表，
-				   JPEG协议没有这个限制。客户的图片恰巧huffman表语法长度小于0xd0，但是有4张huffman表，
-				   进入这个分支只能解码出一张huffman表，故导致JPEG解码错误。
-				   解决办法:把这个if条件注释掉，进入else解析多张huffman表
-				*/
-    			if (0)//(llength < 0xd0)                /* Huffman Table信息 (1 byte) */
+    			if (0)//(llength < 0xd0)              
                 {
-    				huftab1 = (int)(*(lp + 2)) >> 4;     /* huftab1=0,1(HT 类型,0 = DC 1 = AC) */
-    		 		huftab2 = (int)(*(lp + 2)) & 0x0f;   /* huftab2=0,1(HT 号  ,0 = Y  1 = UV) */
-    				huftabindex = huftab1 * 2 + huftab2;           /* 0 = YDC 1 = UVDC 2 = YAC 3 = UVAC */
-    				for(i = 0;i < 16;i++)                     /* 16 bytes: 长度是 1..16 代码的符号数 */
+    				huftab1 = (int)(*(lp + 2)) >> 4;     
+    		 		huftab2 = (int)(*(lp + 2)) & 0x0f;   
+    				huftabindex = huftab1 * 2 + huftab2;          
+    				for(i = 0;i < 16;i++)                    
                     {
-    					code_len_table[huftabindex][i] = (int)(*(lptemp++));/* 码长为 */
+    					code_len_table[huftabindex][i] = (int)(*(lptemp++));
     	            }
     				j = 0;
-    				for(i = 0;i < 16;i++)             /* 得出HT的所有码字的对应值 */
+    				for(i = 0;i < 16;i++)             
                     {
     					if(code_len_table[huftabindex][i] != 0)
                         {
@@ -543,23 +516,23 @@ int InitTag(void)
     					}
     			    }
     				i = 0;
-    				while(code_len_table[huftabindex][i] == 0)  /* 去掉代码的符号数为零 */
+    				while(code_len_table[huftabindex][i] == 0)  
     		 		{
     		 			i++;
     		 	    }
     				for(j = 0;j < i;j++)
                     {
-    					huf_min_value[huftabindex][j] = 0;            /* 码长为j的最小码字 */
-    					huf_max_value[huftabindex][j] = 0;            /* 码长为j的最大码字 */
+    					huf_min_value[huftabindex][j] = 0;            
+    					huf_max_value[huftabindex][j] = 0;           
     				}
     				huf_min_value[huftabindex][i] = 0;
     				huf_max_value[huftabindex][i] = code_len_table[huftabindex][i] - 1;
     				for(j = i + 1;j < 16;j++)
-                    {                                              /* 码长为j的最小码字与最大码字 */
+                    {                                             
     					huf_min_value[huftabindex][j] = (huf_max_value[huftabindex][j - 1] + 1) << 1;
     					huf_max_value[huftabindex][j] = huf_min_value[huftabindex][j] + code_len_table[huftabindex][j] - 1;
     				}
-    				code_pos_table[huftabindex][0] = 0; /* 码起始位置 */
+    				code_pos_table[huftabindex][0] = 0;
     				for(j = 1;j < 16;j++)
     				{
     		  			code_pos_table[huftabindex][j] = code_len_table[huftabindex][j - 1] + code_pos_table[huftabindex][j - 1];
@@ -582,7 +555,6 @@ int InitTag(void)
                         {
                             code_len_table[huftabindex][i] = (int)(*(lptemp++));
     						ccount = ccount + code_len_table[huftabindex][i];
-                             /* i的码字个数 */
     					}
     					ccount = ccount + 17;
     					j = 0;
@@ -631,19 +603,19 @@ int InitTag(void)
     			restart = MAKEWORD(*(lp + 3),*(lp + 2));
     			lp += llength;
                 break;
-            case M_SOS:    /* 扫描行开始0xff, 0xda (SOS) */
-    		    llength = MAKEWORD(*(lp + 1),*lp);/* 长度 (高字节, 低字节), */
-    			comnum = *(lp + 2);               /* 扫描行内组件的数量 (1 byte), 必须 >:= 1 , <:=4 (否则是错的) 通常是 3 */
-		       	if(comnum != comp_num)       /* 必须是 6+2*(扫描行内组件的数量) */
+            case M_SOS:    
+    		    llength = MAKEWORD(*(lp + 1),*lp);
+    			comnum = *(lp + 2);              
+		       	if(comnum != comp_num)     
                 {
 			        return FUNC_FORMAT_ERROR;
                 }
                 lptemp = lp + 3;
     			for(i = 0;i < comp_num;i++)
-                {                  /* 每组件的信息 */
+                {                 
     				if(*lptemp == comp_index[0])
                     {   /* 1 byte :Component id */
-    					YDcIndex = (*(lptemp + 1)) >> 4;   /* Y 使用的 Huffman 表 */
+    					YDcIndex = (*(lptemp + 1)) >> 4;  
     					YAcIndex = ((*(lptemp + 1)) & 0x0f) + 2;
     				}
     				else
@@ -692,7 +664,7 @@ void InitTable(void)
 	{
         for(j = 0;j < 64;j++)
         {
-		    qt_table[i][j] = 0;           /* 量化表 */
+		    qt_table[i][j] = 0;          
 	    }
 	}
 	comp_num = 0;
@@ -736,9 +708,9 @@ void InitTable(void)
 }
 
 /*************************************************************************
-调用顺序: Initialize_Fast_IDCT() :初始化
+	 Initialize_Fast_IDCT() :Init
           DecodeMCUBlock()       Huffman Decode
-          IQtIZzMCUComponent()   反量化、反DCT
+          IQtIZzMCUComponent()  
           GetYUV()               Get Y U V
           StoreBuffer()          YUV to RGB
 *************************************************************************/
@@ -768,10 +740,10 @@ int Decode(void)
 		{
 			IntervalFlag = HI_ERROR;
 		}
-		IQtIZzMCUComponent(0);   /* 反量化 and IDCT The Data in QtZzMCUBuffer */
+		IQtIZzMCUComponent(0);  
 		IQtIZzMCUComponent(1);
 		IQtIZzMCUComponent(2);
-		GetYUV(0);                    /* 得到Y cR cB */
+		GetYUV(0);                   
 		GetYUV(1);
 		GetYUV(2);
 
@@ -796,7 +768,7 @@ int Decode(void)
 }
 
 /**********************************************************************
-   入口 QtZzMCUBuffer 出口 Y[] U[] V[]
+   In: QtZzMCUBuffer Out: Y[] U[] V[]
 **********************************************************************/
 void GetYUV(int flag)
 {
@@ -805,20 +777,20 @@ void GetYUV(int flag)
     int *buf,*tempbuf,*pQtZzMCU;
     switch(flag)
     {
-        case 0:                             /* 亮度分量 */
+        case 0:                            
     		H = SampRate_Y_H;
     		VV = SampRate_Y_V;
     		buf = Y;
     		pQtZzMCU = QtZzMCUBuffer;
             break;
-        case 1:                             /* 红色分量 */
+        case 1:                            
     		H = SampRate_U_H;
     		VV = SampRate_U_V;
     		buf = U;
     		pQtZzMCU = QtZzMCUBuffer;
             pQtZzMCU = pQtZzMCU + (Y_in_MCU << 6);
             break;
-        case 2:                            /* 蓝色分量 */
+        case 2:                            
     		H = SampRate_V_H;
     		VV = SampRate_V_V;
     		buf = V;
@@ -851,9 +823,6 @@ void GetYUV(int flag)
     }
 }
 
-/********************************************************************************
-    将解出的字按RGB形式存储 lpbmp (BGR),(BGR) ......入口Y[] U[] V[] 出口lpPtr
-*********************************************************************************/
 void StoreBuffer(void)
 {
     int i,j;
@@ -886,7 +855,7 @@ void StoreBuffer(void)
 //    printf("\n");
 
     for(i = 0;i < TempSamp1;i++)
-   	{                                  /* sizei表示行 sizej 表示列 */
+   	{                                 
 		if((sizei + i) < ImgHeight)
         {
 			/*lpbmp = lpPtr + (UINT32)((ImgHeight - sizei - (UINT32)(i) - 1) * LineBytes + sizej * 3);*/
@@ -902,7 +871,7 @@ void StoreBuffer(void)
                 		{
 					yy = *pY++;
 
-					uu = pU[ j/H_YtoU ];  /* 内插 */
+					uu = pU[ j/H_YtoU ]; 
 
 					vv = pV[ j/H_YtoV];
 
@@ -912,7 +881,7 @@ void StoreBuffer(void)
 					R = (UINT8)(rr);
 					G = (UINT8)(gg);
 					B = (UINT8)(bb);
-			if((rr && 0xffffff00) != 0)
+			if((rr & 0xffffff00) != 0)
 			{
                         if (rr > 255)
                         {
@@ -927,7 +896,7 @@ void StoreBuffer(void)
                         }
 			}
 
-			if((gg && 0xffffff00) != 0)
+			if((gg & 0xffffff00) != 0)
 			{
                         if(gg > 255)
                         {
@@ -942,7 +911,7 @@ void StoreBuffer(void)
                         }
                     	}
 
-			if((bb && 0xffffff00) != 0)
+			if((bb & 0xffffff00) != 0)
                     	{
                         if(bb > 255)
                         {
@@ -974,7 +943,7 @@ void StoreBuffer(void)
 }
 
 /******************************************************************************
-  Huffman Decode   MCU 出口 MCUBuffer  入口Blockbuffer[  ]
+  Huffman Decode   Out:MCU  MCUBuffer      In:Blockbuffer[  ]
 *******************************************************************************/
 int DecodeMCUBlock(void)
 {
@@ -985,7 +954,7 @@ int DecodeMCUBlock(void)
 	if(IntervalFlag == HI_OK)
     {
 		lp += 2;
-		ycoef = 0;   /* 差值复位 */
+		ycoef = 0;  
         ucoef = 0;
         vcoef = 0;
 		BitPos = 0;
@@ -993,20 +962,20 @@ int DecodeMCUBlock(void)
 	}
 	//printf("comp_num = %x\n", comp_num);
 	switch(comp_num)
-    {                             /* comp_num 指图的类型（彩色图、灰度图）*/
+    {                             /* comp_num*/
 
-	    case 3:   /* 彩色图 */
+	    case 3:   
     		lpMCUBuffer = MCUBuffer;
     		tempX = SampRate_Y_H * SampRate_Y_V;
     		for(i = 0;i < tempX;i++)   /* Y */
     		{
-    			funcret = HufBlock(YDcIndex,YAcIndex);   /* 解码4 * (8*8) */
+    			funcret = HufBlock(YDcIndex,YAcIndex);   
     			if(funcret != FUNC_OK)
                 {
                 	printf("funcret1 = %x\n", funcret);
     				return funcret;
                 }
-                BlockBuffer[0] = BlockBuffer[0] + ycoef;   /* 直流分量是差值，所以要累加。*/
+                BlockBuffer[0] = BlockBuffer[0] + ycoef;  
     			ycoef = BlockBuffer[0];
     			for(j = 0;j < 64;j++)
                 {
@@ -1072,9 +1041,6 @@ int DecodeMCUBlock(void)
 	return FUNC_OK;
 }
 
-/*****************************************************************
-   Huffman Decode （8*8） DU   出口 Blockbuffer[ ] 入口 vvalue
-******************************************************************/
 int HufBlock(UINT8 dchufindex,UINT8 achufindex)
 {
     int count,i;
@@ -1088,7 +1054,7 @@ int HufBlock(UINT8 dchufindex,UINT8 achufindex)
     {
 		return funcret;
     }
-	BlockBuffer[count++] = vvalue;/* 解出的直流系数 */
+	BlockBuffer[count++] = vvalue;
 
 	/* ac */
 	HufTabIndex = achufindex;
@@ -1109,19 +1075,16 @@ int HufBlock(UINT8 dchufindex,UINT8 achufindex)
 		}
 		else
         {
-			for(i = 0;i < rrun;i++)    /* 前面的零 */
+			for(i = 0;i < rrun;i++)    
             {
 				BlockBuffer[count++] = 0;
             }
-			BlockBuffer[count++] = vvalue;/* 解出的值 */
+			BlockBuffer[count++] = vvalue;
 		}
 	}
     return FUNC_OK;
 }
 
-/**************************************************************************
-   Huffman 解码  每个元素   出口 vvalue 入口 读文件ReadByte
-***************************************************************************/
 int DecodeElement(void)
 {
 	int thiscode,tempcode;
@@ -1130,27 +1093,27 @@ int DecodeElement(void)
 	UINT8 hufexbyte,runsize,tempsize,sign;
 	UINT8 newbyte,lastbyte;
 
-	if(BitPos >= 1)             /* BitPos指示当前比特位置 */
+	if(BitPos >= 1)            
     {
 		BitPos--;
-		thiscode = (UINT8)CurByte >> BitPos; /* 取一个比特 */
-		CurByte = CurByte & MyAnd[BitPos]; /* 清除取走的比特位 */
+		thiscode = (UINT8)CurByte >> BitPos; 
+		CurByte = CurByte & MyAnd[BitPos]; 
 	}
-	else                                        /* 取出的一个字节已用完 */
-    {                                          /* 新取 */
-		lastbyte = ReadByte(); /* 读出一个字节 */
+	else                                      
+	{
+		lastbyte = ReadByte(); 
 		BitPos--;                     /* and[]:=0x0,0x1,0x3,0x7,0xf,0x1f,0x2f,0x3f,0x4f */
 		newbyte = CurByte & MyAnd[BitPos];  //
 		thiscode = lastbyte >> 7;
 		CurByte = newbyte;
 	}
 	codelen = 1;
-/* 与Huffman表中的码字匹配，直自找到为止 */
+
 	while((thiscode < huf_min_value[HufTabIndex][codelen - 1]) ||
 		  (code_len_table[HufTabIndex][codelen - 1] == 0) ||
 		  (thiscode > huf_max_value[HufTabIndex][codelen - 1]))
 	{
-		if(BitPos >= 1)       /* 取出的一个字节还有 */
+		if(BitPos >= 1)      
 		{
 		   	BitPos--;
 			tempcode = (UINT8)CurByte >> BitPos;
@@ -1173,8 +1136,8 @@ int DecodeElement(void)
 	}  //while
 	temp = thiscode - huf_min_value[HufTabIndex][codelen - 1] + code_pos_table[HufTabIndex][codelen - 1];
 	hufexbyte = (UINT8)code_value_table[HufTabIndex][temp];
-	rrun = (int)(hufexbyte >> 4);  /* 一个字节中，高四位是其前面的零的个数。*/
-	runsize = hufexbyte & 0x0f;      /* 后四位为后面字的尺寸 */
+	rrun = (int)(hufexbyte >> 4); 
+	runsize = hufexbyte & 0x0f;    
 	if(runsize == 0)
     {
 		vvalue = 0;
@@ -1205,7 +1168,7 @@ int DecodeElement(void)
 	sign = valueex >> (runsize - 1);
 	if(sign != 0)
 	{
-		vvalue = valueex;             /* 解出的码值 */
+		vvalue = valueex;            
 	}
 	else
     {
@@ -1216,9 +1179,7 @@ int DecodeElement(void)
 	return FUNC_OK;
 }
 
-/************************************************************************************
-    反量化MCU中的每个组件   入口 MCUBuffer 出口 QtZzMCUBuffer
-*************************************************************************************/
+
 void IQtIZzMCUComponent(int flag)
 {
     int H,VV,i,j;
@@ -1269,10 +1230,7 @@ void IQtIZzMCUComponent(int flag)
     }
 }
 
-             /* 要量化的字 */
-/**********************************************************************************
-   反量化 8*8 DU
-***********************************************************************************/
+
 void IQtIZzBlock(int *s,int *d,int flag)
 {
     int i,j,tag;
@@ -1283,16 +1241,16 @@ void IQtIZzBlock(int *s,int *d,int flag)
 
 	switch(flag)
 	{
-    	case 0:                /* 亮度 */
-    		pQt = YQtTable;      /* 量化表地址 */
+    	case 0:               
+    		pQt = YQtTable;     
         /* ShowMessage(IntTostr(YQtTable^)); */
     		offset = 128;
             break;
-    	case 1:                /* 红 */
+    	case 1:               
     		pQt = UQtTable;
     		offset = 0;
             break;
-    	case 2:               /* 蓝 */
+    	case 2:              
     		pQt = VQtTable;
             offset = 0;
             break;
@@ -1314,7 +1272,7 @@ void IQtIZzBlock(int *s,int *d,int flag)
 			buffer2[i][j] = (int)((*temp1) * (*temp3));
 		}
     }
-	Fast_IDCT(&buffer2[0][0]);    /* 反DCT */
+	Fast_IDCT(&buffer2[0][0]);   
 	for(i = 0;i < 8;i++)
 	{
 		for(j = 0;j < 8;j++)
@@ -1343,7 +1301,7 @@ UINT8 ReadByte(void)
 {
 	UINT8 i;
 
-	i = *lp; /* lp 为解码的起始位置 */
+	i = *lp; 
     lp = lp + 1;
 	if(i == 0xff)
 	{

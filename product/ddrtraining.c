@@ -641,7 +641,7 @@ static int check_prebit_tmp(const unsigned int code, unsigned int word,
 static int check_multi_ssn(struct hi_training *training, unsigned int bit)
 {
 
-	unsigned int i, j, n, k;
+	unsigned int i, j, n, k, m;
 	unsigned int ad_cnt = LOOP_NUM;
 	unsigned int ssn_code[BURST_LENGTH];
 	unsigned int ddrt_ddr_base = training->ssn_ddr_base;
@@ -693,8 +693,8 @@ static int check_multi_ssn(struct hi_training *training, unsigned int bit)
 				}
 			}
 		} else if (option == DDRT_MODE_READ) {
-			for (n = 0; n < ad_cnt; ++n)
-				memcpy_soc((unsigned int *)((char *)ddrt_ddr_base + n * BURST_LENGTH * 4),
+			for (m = 0; m < ad_cnt; ++m)
+				memcpy_soc((unsigned int *)((char *)ddrt_ddr_base + m * BURST_LENGTH * 4),
 						ssn_code, BURST_LENGTH * 4);
 
 			for (k = 0; k < ad_cnt; k++) {

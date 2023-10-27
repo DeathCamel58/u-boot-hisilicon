@@ -1,7 +1,20 @@
-/******************************************************************************
-*    Copyright (c) 2009-2012 by Hisi.
-*    All rights reserved.
-******************************************************************************/
+/*
+ * Copyright (c) 2016 HiSilicon Technologies Co., Ltd.
+ *
+ * This program is free software; you can redistribute  it and/or modify it
+ * under  the terms of  the GNU General Public License as published by the
+ * Free Software Foundation;  either version 2 of the  License, or (at your
+ * option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ */
 
 #include <common.h>
 #include <asm/io.h>
@@ -21,8 +34,9 @@ static int spi_w25q256fv_entry_4addr(struct hisfc_spi *spi, int enable)
 
 	if (spi->addrcycle != SPI_4BYTE_ADDR_LEN)
 		return 0;
-
-	spi->driver->write_enable(spi);
+	/* This chip should not enable write here,
+	 * we have confirmed with the WINBOND */
+	/* spi->driver->write_enable(spi); */
 	if (enable) {
 		hisfc_write(host, HISFC350_CMD_INS, SPI_CMD_EN4B);
 		if (DEBUG_SPI)

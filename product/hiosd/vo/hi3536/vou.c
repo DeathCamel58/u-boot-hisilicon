@@ -179,6 +179,7 @@ HI_VOID VouSetDispMaxSize(VO_DEV VoDev, VO_INTF_SYNC_E enVoOutMode)
             u32MaxHeight = 2160;
             break;
         case VO_OUTPUT_2560x1440_30 :
+        case VO_OUTPUT_2560x1440_60 :
             u32MaxWidth = 2560;
             u32MaxHeight = 1440;
             break;    
@@ -188,6 +189,8 @@ HI_VOID VouSetDispMaxSize(VO_DEV VoDev, VO_INTF_SYNC_E enVoOutMode)
             break;
         case VO_OUTPUT_3840x2160_30 :
         case VO_OUTPUT_3840x2160_60 :
+        case VO_OUTPUT_3840x2160_25 :
+        case VO_OUTPUT_3840x2160_50 :
             u32MaxWidth = 3840;
             u32MaxHeight = 2160;
             break;            
@@ -205,8 +208,6 @@ HI_VOID VouSetDispMaxSize(VO_DEV VoDev, VO_INTF_SYNC_E enVoOutMode)
 
 int start_vo(unsigned int dev, unsigned int type, unsigned int sync)
 {
-    int i;
-    
     if (g_bInited == HI_FALSE)
     {   
         SYS_HAL_DDRConifg();
@@ -220,17 +221,18 @@ int start_vo(unsigned int dev, unsigned int type, unsigned int sync)
         
         g_bInited = HI_TRUE;
     }
-    /*´ò¿ªHDµÄÊ±ÖÓÃÅ¿Ø*/
-    for (i = 0; i < 2; i++)
+    /*ï¿½ï¿½HDï¿½ï¿½Ê±ï¿½ï¿½ï¿½Å¿ï¿½*/
+    if ((VOU_DEV_DHD0 == dev) || (VOU_DEV_DHD1 == dev))
     {
-        SYS_HAL_VouDevClkEn(i, HI_TRUE);
+        SYS_HAL_VouDevClkEn(dev, HI_TRUE);
     }
-
-    if (dev == VOU_DEV_DSD0)
+    else if (dev == VOU_DEV_DSD0)
     {
         SYS_HAL_SelVoSdClkDiv(0x0);
         SYS_HAL_VouDevClkEn(dev, HI_TRUE);
     }
+    else
+    {}
     
     VouSetDispMaxSize(dev, sync);
     VOU_DRV_SetDevIntfType(dev, type);
@@ -302,7 +304,7 @@ int start_videolayer(unsigned int layer, unsigned addr, unsigned int strd,
     enLayer = VideoLayerConvert(layer);
     HAL_LAYER_SetLayerDataFmt(layer, VOU_LAYER_PIXERL_FORMAT_SPYCbCr_420);
 
-    /*¸´ÖÆÄ£Ê½*/
+    /*ï¿½ï¿½ï¿½ï¿½Ä£Ê½*/
     HAL_VIDEO_SetIfirMode(layer, 1);
     HAL_VIDEO_SetLayerDispRect(layer, &stMaxRect);
     HAL_VIDEO_SetLayerVideoRect(layer, &stMaxRect);
@@ -310,9 +312,9 @@ int start_videolayer(unsigned int layer, unsigned addr, unsigned int strd,
     HAL_LAYER_SetLayerInRect(layer, &stMaxRect);
     HAL_LAYER_SetLayerGalpha(layer, 255);
 
-    /*¹Ø±ÕÊÓÆµ²ãËõ·Å£¬ÇÒÄ¬ÈÏ½«ÂË²¨Ä£Ê½È«²¿ÉèÖÃÎª¸´ÖÆÄ£Ê½*/
+    /*ï¿½Ø±ï¿½ï¿½ï¿½Æµï¿½ï¿½ï¿½ï¿½ï¿½Å£ï¿½ï¿½ï¿½Ä¬ï¿½Ï½ï¿½ï¿½Ë²ï¿½Ä£Ê½È«ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Îªï¿½ï¿½ï¿½ï¿½Ä£Ê½*/
     HAL_LAYER_SetZmeEnable(layer, HAL_DISP_ZMEMODE_ALL, HI_FALSE);
-    /*420->422->444(¸´ÖÆÄ£Ê½)£¬²»Ö§³ÖËõ·Å */
+    /*420->422->444(ï¿½ï¿½ï¿½ï¿½Ä£Ê½)ï¿½ï¿½ï¿½ï¿½Ö§ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ */
     HAL_LAYER_SetZmeMscEnable(layer, HAL_DISP_ZMEMODE_VERC, HI_TRUE);
     HAL_LAYER_SetVerRatio(layer, 0x1000);
 

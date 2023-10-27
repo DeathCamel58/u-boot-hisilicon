@@ -163,7 +163,6 @@
 /* default is hieth-switch-fabric */
 #define CONFIG_NET_HISFV300
 #ifdef CONFIG_NET_HISFV300
-	#define CONFIG_NET_HISFV300_HI3520D	1
 	#define INNER_PHY
 	#define INNER_PHY_ADDR_U		3
 	#define INNER_PHY_ADDR_D		2
@@ -212,7 +211,7 @@
 #define CFG_CMDLINE_HISTORYS    8
 #define CONFIG_CMDLINE_EDITING
 #define CFG_DDR_PHYS_OFFSET MEM_BASE_DDR
-#define CFG_DDR_SIZE		(256*1024*1024)
+#define CFG_DDR_SIZE		(256*1024*1024UL)
 
 #define CONFIG_SYS_MEMTEST_START       \
 	(CFG_DDR_PHYS_OFFSET + \
@@ -281,6 +280,14 @@
 #define DDRT_ENABLE_BYTE_TRAINING
 #define DDRT_ENABLE_BIT_TRAINING
 
+#define TRY_MAX_TIME 3
+#define INIT_RDDQS_VALUE 8
+#define RDDQS_MAGIC 0x12345678
+#define INIT_RDDQS_MIN 6
+#define CUR_RDDQS_REG 0x200500ac
+#define CUR_RDDQS_TRY 0x200500b0
+#define CUR_RDDQS_FLAG 0x200500b4
+
 #endif
 
 #define ENABLE_HI3520D_BLANK
@@ -295,7 +302,7 @@
 #define CONFIG_CMD_SETEXPR	/* setexpr support		*/
 #define CONFIG_CMD_ITEST	/* Integer (and string) test	*/
 #define CONFIG_CMD_SETEXPR	/* setexpr support		*/
-#define CONFIG_CMD_I2C		/* I2C serial bus support	*/
+//#define CONFIG_CMD_I2C		/* I2C serial bus support	*/
 
 #define CONFIG_OSD_ENABLE
 #endif	/* __CONFIG_H */

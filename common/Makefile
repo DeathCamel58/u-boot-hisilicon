@@ -45,12 +45,16 @@ COBJS-$(CONFIG_CMD_SF) += spiflash_logif.o
 COBJS-$(CONFIG_CMD_NAND) += nand_logif.o
 
 # core command
+ifndef CONFIG_HI3536_A7
 COBJS-y += cmd_getinfo.o
+endif
 COBJS-y += cmd_boot.o
 COBJS-y += cmd_bootm.o
 COBJS-y += cmd_help.o
 COBJS-y += cmd_nvedit.o
 COBJS-y += cmd_version.o
+COBJS-$(CONFIG_CMD_UGZIP) += cmd_ugzip.o
+COBJS-$(CONFIG_CMD_CREAD) += cmd_cycle.o
 #ddr training command
 COBJS-$(CONFIG_DDR_TRAINING) += cmd_ddrtraining.o
 COBJS-$(CONFIG_DDR_TRAINING_V200) += cmd_ddrtrainingv200.o
@@ -98,8 +102,10 @@ COBJS-$(CONFIG_ENV_IS_IN_EEPROM) += cmd_eeprom.o
 COBJS-$(CONFIG_CMD_EEPROM) += cmd_eeprom.o
 COBJS-$(CONFIG_CMD_ELF) += cmd_elf.o
 COBJS-$(CONFIG_SYS_HUSH_PARSER) += cmd_exit.o
+ifndef CONFIG_HI3536_A7
 COBJS-$(CONFIG_CMD_EXT2) += cmd_ext2.o
 COBJS-$(CONFIG_CMD_FAT) += cmd_fat.o
+endif
 COBJS-$(CONFIG_CMD_FDC)$(CONFIG_CMD_FDOS) += cmd_fdc.o
 COBJS-$(CONFIG_OF_LIBFDT) += cmd_fdt.o fdt_support.o
 COBJS-$(CONFIG_CMD_FDOS) += cmd_fdos.o
@@ -123,13 +129,19 @@ COBJS-$(CONFIG_CMD_MFSL) += cmd_mfsl.o
 COBJS-$(CONFIG_CMD_MG_DISK) += cmd_mgdisk.o
 COBJS-$(CONFIG_MII) += miiphyutil.o
 COBJS-$(CONFIG_CMD_MII) += miiphyutil.o
+ifndef CONFIG_HI3536_A7
 COBJS-$(CONFIG_CMD_MII) += cmd_mii.o
+endif
 COBJS-$(CONFIG_CMD_MISC) += cmd_misc.o
+ifndef CONFIG_HI3536_A7
 COBJS-$(CONFIG_CMD_MMC) += cmd_mmc.o
+endif
 COBJS-$(CONFIG_MP) += cmd_mp.o
 COBJS-$(CONFIG_CMD_MTDPARTS) += cmd_mtdparts.o
 COBJS-$(CONFIG_CMD_NAND) += cmd_nand.o
+ifndef CONFIG_HI3536_A7
 COBJS-$(CONFIG_CMD_NET) += cmd_net.o
+endif
 COBJS-$(CONFIG_CMD_ONENAND) += cmd_onenand.o
 COBJS-$(CONFIG_CMD_OTP) += cmd_otp.o
 ifdef CONFIG_PCI
@@ -152,6 +164,7 @@ COBJS-$(CONFIG_CMD_TSI148) += cmd_tsi148.o
 COBJS-$(CONFIG_CMD_UBI) += cmd_ubi.o
 COBJS-$(CONFIG_CMD_UBIFS) += cmd_ubifs.o
 COBJS-$(CONFIG_CMD_UNIVERSE) += cmd_universe.o
+COBJS-$(CONFIG_HAS_SLAVE) += cmd_slavestart.o
 ifdef CONFIG_CMD_USB
 COBJS-y += cmd_usb.o
 COBJS-y += usb.o
@@ -173,21 +186,174 @@ COBJS-$(CONFIG_LYNXKDI) += lynxkdi.o
 COBJS-$(CONFIG_MODEM_SUPPORT) += modem.o
 COBJS-$(CONFIG_UPDATE_TFTP) += update.o
 COBJS-$(CONFIG_USB_KEYBOARD) += usb_kbd.o
+AOBJS-$(CONFIG_DDR_TRAINING_V300) += ddr_training_entry.o
+COBJS-$(CONFIG_DDR_TRAINING_V300) += cmd_ddr_training_v300.o
+COBJS-$(CONFIG_DDR_TRAINING_HI3535)  += hi3535_ddr_training_printf.o
+COBJS-$(CONFIG_DDR_TRAINING_HI3516A)  += hi3516a_ddr_training_printf.o
+COBJS-$(CONFIG_DDR_TRAINING_V2) += cmd_ddr_training_v2.o
 
+ifeq ($(CONFIG_AUDIO_ENABLE), y)
+ifeq ($(CONFIG_PRODUCTNAME), "hi3516a")
+COBJS-y += cmd_ao.o
+endif
+ifeq ($(CONFIG_PRODUCTNAME), "hi3519")
+COBJS-y += cmd_ao.o
+endif
+ifeq ($(CONFIG_PRODUCTNAME), "hi3519v101")
+COBJS-y += cmd_ao.o
+endif
+ifeq ($(CONFIG_PRODUCTNAME), "hi3516av200")
+COBJS-y += cmd_ao.o
+endif
+ifeq ($(CONFIG_PRODUCTNAME), "hi3559")
+COBJS-y += cmd_ao.o
+endif
+ifeq ($(CONFIG_PRODUCTNAME), "hi3556")
+COBJS-y += cmd_ao.o
+endif
+endif
+ifndef CONFIG_HI3536_A7
 sinclude Makefile-osd
+endif
 
-
+AOBJS	:= $(sort $(AOBJS-y))
 COBJS	:= $(sort $(COBJS-y))
 SRCS	:= $(AOBJS:.o=.S) $(COBJS:.o=.c)
 OBJS	:= $(addprefix $(obj),$(AOBJS) $(COBJS))
 
+SRCS    += $(obj)crc32.c
+
 CPPFLAGS += -I..
 
-all:	$(LIB) $(AOBJS)
+all:	$(LIB) $(AOBJS) bootss2
 
 $(LIB): $(obj).depend $(OBJS)
 	$(AR) $(ARFLAGS) $@ $(OBJS)
 
+bootss2:
+ifdef CONFIG_SNAPSHOT_BOOT
+	rm bootss2.a -rf
+ifeq ($(CROSS_COMPILE),arm-hisiv300-linux-)
+ifdef CONFIG_HI3518EV200
+	cp cmd_bootss2_v300_hi3518ev200 bootss2.a -rf
+else
+	cp cmd_bootss2_v300 bootss2.a -rf
+endif
+endif
+
+ifeq ($(CROSS_COMPILE),arm-hisiv400-linux-)
+ifdef CONFIG_HI3518EV200
+	cp cmd_bootss2_v400_hi3518ev200 bootss2.a -rf
+else
+	cp cmd_bootss2_v400 bootss2.a -rf
+endif
+endif
+
+ifeq ($(CROSS_COMPILE),arm-hisiv500-linux-)
+ifdef CONFIG_HI3516CV300
+	cp cmd_bootss2_v500_hi3516cv300 bootss2.a -rf
+endif #/* end CONFIG_HI3516CV300 */
+
+ifdef CONFIG_HI3519
+ifdef CONFIG_HIFMC_NAND
+	cp cmd_bootss2_v500_hi3519_nand bootss2.a -rf
+else
+	cp cmd_bootss2_v500_hi3519 bootss2.a -rf
+endif #/*end CONFIG_HIFMC_NAND*/
+endif #/*end CONFIG_HI3519*/
+
+ifdef CONFIG_HI3519V101
+ifdef CONFIG_HIFMC_NAND
+	cp cmd_bootss2_v500_hi3519_nand bootss2.a -rf
+else
+	cp cmd_bootss2_v500_hi3519 bootss2.a -rf
+endif #/*end CONFIG_HIFMC_NAND*/
+endif #/*end CONFIG_HI3519V101*/
+
+ifdef CONFIG_HI3516AV200
+ifdef CONFIG_HIFMC_NAND
+	cp cmd_bootss2_v500_hi3516av200_nand bootss2.a -rf
+else
+	cp cmd_bootss2_v500_hi3516av200 bootss2.a -rf
+endif #/*end CONFIG_HIFMC_NAND*/
+endif #/*end CONFIG_HI3516AV200*/
+
+ifdef CONFIG_HI3559
+ifdef CONFIG_HIFMC_NAND
+	cp cmd_bootss2_v500_hi3559_nand bootss2.a -rf
+else
+	cp cmd_bootss2_v500_hi3559 bootss2.a -rf
+endif #/*end CONFIG_HIFMC_NAND*/
+endif #/*end CONFIG_HI3559*/
+
+ifdef CONFIG_HI3556
+ifdef CONFIG_HIFMC_NAND
+	cp cmd_bootss2_v500_hi3559_nand bootss2.a -rf
+else
+	cp cmd_bootss2_v500_hi3559 bootss2.a -rf
+endif #/*end CONFIG_HIFMC_NAND*/
+endif #/*end CONFIG_HI3556*/
+endif #/*end arm-hisiv500-linux-*/
+
+ifeq ($(CROSS_COMPILE),arm-hisiv600-linux-)
+ifdef CONFIG_HI3516CV300
+	cp cmd_bootss2_v600_hi3516cv300 bootss2.a -rf
+endif #/* end CONFIG_HI3516CV300 */
+
+ifdef CONFIG_HI3519
+ifdef CONFIG_HIFMC_NAND
+	cp cmd_bootss2_v600_hi3519_nand bootss2.a -rf
+else
+	cp cmd_bootss2_v600_hi3519 bootss2.a -rf
+endif #/*end CONFIG_HIFMC_NAND*/
+endif #/*end CONFIG_HI3519*/
+	
+ifdef CONFIG_HI3519V101
+ifdef CONFIG_HIFMC_NAND
+	cp cmd_bootss2_v600_hi3519_nand bootss2.a -rf
+else
+	cp cmd_bootss2_v600_hi3519 bootss2.a -rf
+endif #/*end CONFIG_HIFMC_NAND*/
+endif #/*end CONFIG_HI3519V101*/
+
+ifdef CONFIG_HI3516AV200
+ifdef CONFIG_HIFMC_NAND
+	cp cmd_bootss2_v600_hi3516av200_nand bootss2.a -rf
+else
+	cp cmd_bootss2_v600_hi3516av200 bootss2.a -rf
+endif #/*end CONFIG_HIFMC_NAND*/
+endif #/*end CONFIG_HI3516AV200*/
+
+ifdef CONFIG_HI3559
+ifdef CONFIG_HIFMC_NAND
+	cp cmd_bootss2_v600_hi3559_nand bootss2.a -rf
+else
+	cp cmd_bootss2_v600_hi3559 bootss2.a -rf
+endif #/*end CONFIG_HIFMC_NAND*/
+endif #/*end CONFIG_HI3559*/
+
+ifdef CONFIG_HI3556
+ifdef CONFIG_HIFMC_NAND
+	cp cmd_bootss2_v600_hi3559_nand bootss2.a -rf
+else
+	cp cmd_bootss2_v600_hi3559 bootss2.a -rf
+endif #/*end CONFIG_HIFMC_NAND*/
+endif #/*end CONFIG_HI3556*/
+endif #/*end arm-hisiv600-linux-*/
+
+ifeq ($(CROSS_COMPILE),arm-hisiv510-linux-)
+ifdef CONFIG_HI3518EV200
+	cp cmd_bootss2_v510_hi3518ev200 bootss2.a -rf
+endif
+endif
+
+ifeq ($(CROSS_COMPILE),arm-hisiv610-linux-)
+ifdef CONFIG_HI3518EV200
+	cp cmd_bootss2_v610_hi3518ev200 bootss2.a -rf
+endif
+endif
+
+endif #/*end CONFIG_SNAPSHOT_BOOT*/
 $(obj)env_embedded.o: $(src)env_embedded.c $(obj)../tools/envcrc
 	$(CC) $(AFLAGS) -Wa,--no-warn \
 		-DENV_CRC=$(shell $(obj)../tools/envcrc) \
@@ -195,6 +361,9 @@ $(obj)env_embedded.o: $(src)env_embedded.c $(obj)../tools/envcrc
 
 $(obj)../tools/envcrc:
 	$(MAKE) -C ../tools
+
+$(obj)crc32.c:
+	ln -s $(src)$(SRCTREE)/lib/crc32.c $(obj)crc32.c
 
 #########################################################################
 

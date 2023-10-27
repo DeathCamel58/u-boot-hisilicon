@@ -6,7 +6,7 @@ struct hieth_mdio_local {
 	unsigned long iobase_phys;
 
 	/* mdio_bus freq-div, 1 for 1/100, 0 for 1/50 */
-	int mdio_frqdiv;
+	u32 mdio_frqdiv;
 };
 
 #ifdef HIETH_SFV300
@@ -31,7 +31,7 @@ struct hieth_mdio_local {
 		  ((phy_regnum)&0x1F) )
 
 /* hardware set bit'15 of MDIO_REG(0) if mdio ready */
-#define test_mdio_ready(ld) (hieth_readl(ld, MDIO_RWCTRL)&(1<<15))
+#define test_mdio_ready(ld) (hieth_readl(ld, MDIO_RWCTRL) & BIT(15))
 
 #define mdio_start_phyread(ld, phy_addr, regnum ) \
 	hieth_writel(ld, MDIO_MK_RWCTL(0,0,0,phy_addr,(ld)->mdio_frqdiv,regnum), MDIO_RWCTRL)

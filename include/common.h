@@ -224,6 +224,9 @@ int	print_buffer (ulong addr, void* data, uint width, uint count, uint linelen);
 /* common/main.c */
 void	main_loop	(void);
 int	run_command	(const char *cmd, int flag);
+#ifdef CONFIG_HI3536
+int	run_command_slave(const char *cmd, int flag);
+#endif
 int	readline	(const char *const prompt);
 int	readline_into_buffer	(const char *const prompt, char * buffer);
 int	parse_line (char *, char *[]);
@@ -474,6 +477,7 @@ void	serial_setbrg (void);
 void	serial_putc   (const char);
 void	serial_putc_raw(const char);
 void	serial_puts   (const char *);
+void	serial_puts_to_hitool(const char *);
 int	serial_getc   (void);
 int	serial_tstc   (void);
 
@@ -613,6 +617,12 @@ void	invalidate_dcache_range(unsigned long start, unsigned long stop);
 unsigned long long get_ticks(void);
 void	wait_ticks    (unsigned long);
 
+#ifndef DDR_DBG_BUG
+#  define DDR_DBG_BUG(_p) do {\
+		printf("%s(%d): [BUG] ", __FILE__, __LINE__); \
+		printf _p; \
+} while (0)
+#endif
 /* arch/$(ARCH)/lib/time.c */
 void	__udelay      (unsigned long);
 ulong	usec2ticks    (unsigned long usec);
@@ -642,6 +652,8 @@ void	panic(const char *fmt, ...)
 		__attribute__ ((format (__printf__, 1, 2)));
 int	sprintf(char * buf, const char *fmt, ...)
 		__attribute__ ((format (__printf__, 2, 3)));
+int snprintf(char *str, size_t size, const char *format, ...);
+
 int	vsprintf(char *buf, const char *fmt, va_list args);
 char *ultohstr(unsigned long long size);
 
@@ -676,6 +688,7 @@ void	puts(const char *s);
 void	printf(const char *fmt, ...)
 		__attribute__ ((format (__printf__, 1, 2)));
 void	vprintf(const char *fmt, va_list args);
+void	print_to_hitool(const char *fmt, ...);
 
 /* stderr */
 #define eputc(c)		fputc(stderr, c)
@@ -730,8 +743,10 @@ int cpu_release(int nr, int argc, char *argv[]);
 #define BOOT_MEDIA_NAND           (2)
 #define BOOT_MEDIA_SPIFLASH       (3)
 #define BOOT_MEDIA_EMMC           (4)
+
 /* get uboot start media. */
 int get_boot_media(void);
+unsigned int get_ddr_size(void);
 
 #endif /* __ASSEMBLY__ */
 

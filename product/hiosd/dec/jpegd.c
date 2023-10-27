@@ -8,7 +8,6 @@
 #include <asm/arch/platform.h>
 #include <asm/sizes.h>
 #include <config.h>
-#include "hi_jpeg_config.h"
 
 unsigned long jpeg_size=0;
 
@@ -21,13 +20,9 @@ extern unsigned long ImgWidth, ImgHeight;
 
 const char hilogo_magic_str[] = "HISILICON LOGO MAGIC";
 
-#define JPEG_BUFFER_SIZE (1*1024*1024)
+#define JPEG_BUFFER_SIZE (3*1024*512)
 
-#ifndef HARD_DEC
-unsigned char hilogo[JPEG_BUFFER_SIZE];
-#else
 unsigned char * hilogo = NULL;
-#endif
 
 unsigned long VIDEO_DATA_BASE=0;
 
@@ -41,13 +36,16 @@ int jpeg_decode(void)
 {
     enable_mmu();
 
+#if !defined(CONFIG_HI3531A) && !defined(CONFIG_HI3531D)
     dcache_enable();
-    
+#endif
     printf("mmu_enable\n");
 
     LoadJpegFile((void *)VIDEO_DATA_BASE);
     
+#if !defined(CONFIG_HI3531A) && !defined(CONFIG_HI3531D)
     dcache_disable();
+#endif
     stop_mmu();
 
     return 0;
@@ -78,35 +76,44 @@ int load_jpeg(void)
     	return 1;
     }
 
-    if(VIDEO_DATA_BASE == 0)
+    if(VIDEO_DATA_BASE == 0 || ((VIDEO_DATA_BASE & 0x7f) != 0))
     {
-        printf("Invalid VOU buffer address 0x%08lX\n",VIDEO_DATA_BASE);
+        printf("Invalid VOU buffer address 0x%08lX!\n",VIDEO_DATA_BASE);
+        return -1;
+    }
+    
+    t = getenv("jpeg_size");
+    if (t)
+    {
+        jpeg_size = simple_strtol(t, NULL, 0);
+    }
+    else
+    {
+        printf("you should set jpeg picture's address!\n");
         return -1;
     }
 
-    jpeg_size=simple_strtol(getenv("jpeg_size"),NULL,0);
+	if(jpeg_size == 0)
+    {
+        printf("Invalid jpeg_size 0x%08lX!\n",jpeg_size);
+        return -1;
+    }
 
     t = getenv("jpeg_addr");
-
-#ifndef HARD_DEC
-    memset(hilogo,0x0,JPEG_BUFFER_SIZE);
-#endif
 
     if(t)
     {
     	u=  simple_strtol(t,NULL,0);
+		if(u == 0 || ((u & 0x7f) != 0))
+	    {
+	        printf("Invalid jpeg_addr 0x%08lX!\n",u);
+	        return -1;
+	    }
+
         printf("<<addr=%#lx, size=%#lx, vobuf=%#lx>>\n", u,jpeg_size,VIDEO_DATA_BASE);
 
-        #ifndef HARD_DEC 
-        if(jpeg_size > JPEG_BUFFER_SIZE)
-		{
-			printf("jpeg_size %lx is bigger than buffer size %lx\n",jpeg_size, (unsigned long)JPEG_BUFFER_SIZE);
-			return -1;
-		}
-    	memcpy(hilogo, (char*)u,jpeg_size);
-        #else 
         hilogo = (unsigned char *)u;
-        #endif
+
         if (*(volatile unsigned char *)hilogo != 0xFF || *(volatile unsigned char *)(hilogo+1) != 0xD8)
         {
         	printf("addr:%#x,size:%ld,logoaddr:%#lx,:%2x,%2x\n",(unsigned int)(void *)hilogo,jpeg_size,u

@@ -25,29 +25,29 @@
 #define BITS_IRQS_D		MK_BITS(20, 8)
 
 #define BITS_IRQS_MASK_U	(0xFF)
-#define BITS_IRQS_MASK_D	(0xFF<<20)
+#define BITS_IRQS_MASK_D	(0xFF << 20)
 
 /* IRQs bit name */
-#define HIETH_INT_RX_RDY_U	(1<<0)
-#define HIETH_INT_RX_RDY_D	(1<<20)
-#define HIETH_INT_TX_FIN_U	(1<<1)
-#define HIETH_INT_TX_FIN_D	(1<<21)
-#define HIETH_INT_LINK_CH_U	(1<<2)
-#define HIETH_INT_LINK_CH_D	(1<<22)
-#define HIETH_INT_SPEED_CH_U	(1<<3)
-#define HIETH_INT_SPEED_CH_D	(1<<23)
-#define HIETH_INT_DUPLEX_CH_U	(1<<4)
-#define HIETH_INT_DUPLEX_CH_D	(1<<24)
-#define HIETH_INT_STATE_CH_U	(1<<5)
-#define HIETH_INT_STATE_CH_D	(1<<25)
-#define HIETH_INT_TXQUE_RDY_U	(1<<6)
-#define HIETH_INT_TXQUE_RDY_D	(1<<26)
-#define HIETH_INT_MULTI_RXRDY_U	(1<<7)
-#define HIETH_INT_MULTI_RXRDY_D	(1<<27)
+#define HIETH_INT_RX_RDY_U	BIT(0)
+#define HIETH_INT_RX_RDY_D	BIT(20)
+#define HIETH_INT_TX_FIN_U	BIT(1)
+#define HIETH_INT_TX_FIN_D	BIT(21)
+#define HIETH_INT_LINK_CH_U	BIT(2)
+#define HIETH_INT_LINK_CH_D	BIT(22)
+#define HIETH_INT_SPEED_CH_U	BIT(3)
+#define HIETH_INT_SPEED_CH_D	BIT(23)
+#define HIETH_INT_DUPLEX_CH_U	BIT(4)
+#define HIETH_INT_DUPLEX_CH_D	BIT(24)
+#define HIETH_INT_STATE_CH_U	BIT(5)
+#define HIETH_INT_STATE_CH_D	BIT(25)
+#define HIETH_INT_TXQUE_RDY_U	BIT(6)
+#define HIETH_INT_TXQUE_RDY_D	BIT(26)
+#define HIETH_INT_MULTI_RXRDY_U	BIT(7)
+#define HIETH_INT_MULTI_RXRDY_D	BIT(27)
 
-#define HIETH_INT_MDIO_FINISH	(1<<12)
-#define HIETH_INT_UNKNOW_VLANID	(1<<13)
-#define HIETH_INT_UNKNOW_VLANM	(1<<14)
+#define HIETH_INT_MDIO_FINISH	BIT(12)
+#define HIETH_INT_UNKNOW_VLANID	BIT(13)
+#define HIETH_INT_UNKNOW_VLANM	BIT(14)
 
 /* Tx/Rx Queue depth */
 #define U_GLB_QLEN_SET	0x0344
@@ -101,6 +101,7 @@
 ////////////////////////////////////////////////////////////////////////////////////////////
 
 #define is_recv_packet(ld) (hieth_readl(ld, GLB_RW_IRQ_RAW) & (UD_BIT_NAME(HIETH_INT_RX_RDY))) 
+#define is_recv_packet_rx(ld) ((hieth_readl(ld, UD_REG_NAME(GLB_RO_QUEUE_STAT)) >> 8) & 0x3F)
 //#define hw_set_rxpkg_finish(ld) hieth_writel_bits(ld, 1, GLB_RW_IRQ_RAW, UD_BIT_NAME(HIETH_INT_RX_RDY))
 #define hw_set_rxpkg_finish(ld) hieth_writel(ld, UD_BIT_NAME(HIETH_INT_RX_RDY), GLB_RW_IRQ_RAW)
 
@@ -125,13 +126,16 @@
 #endif
 
 /* for each bits, set '1' enable the intterrupt, and '0' takes no effects */
-int hieth_irq_enable(struct hieth_netdev_local *ld, int irqs);	/* return last irq_enable status */
-int hieth_irq_disable(struct hieth_netdev_local *ld, int irqs);	/* return last irq_enable status */
-int hieth_read_irqstatus(struct hieth_netdev_local *ld);	/* return irqstatus */
-int hieth_read_raw_irqstatus(struct hieth_netdev_local *ld);
-int hieth_clear_irqstatus(struct hieth_netdev_local *ld, int irqs);	/* return irqstatus after clean */
+/* return last irq_enable status */
+u32 hieth_irq_enable(struct hieth_netdev_local *ld, u32 irqs);
+u32 hieth_irq_disable(struct hieth_netdev_local *ld, u32 irqs);
+/* return irqstatus */
+u32 hieth_read_irqstatus(struct hieth_netdev_local *ld);
+u32 hieth_read_raw_irqstatus(struct hieth_netdev_local *ld);
+/* return irqstatus after clean */
+u32 hieth_clear_irqstatus(struct hieth_netdev_local *ld, u32 irqs);
 
-int hieth_set_endian_mode(struct hieth_netdev_local *ld, int mode);
+u32 hieth_set_endian_mode(struct hieth_netdev_local *ld, u32 mode);
 
 /* Tx/Rx queue operation */
 int hieth_set_hwq_depth(struct hieth_netdev_local *ld);

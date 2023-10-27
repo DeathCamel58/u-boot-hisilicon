@@ -18,6 +18,10 @@
 
 #define OSDRV_MODULE_VERSION_STRING "Hisilicon ETH net controler"
 
+#ifndef BIT
+#define BIT(nr)		(1UL << (nr))
+#endif
+#define mdelay(n)	udelay((n)*1000)
 /* ***********************************************************
  *
  * Global varibles and defintions
@@ -28,6 +32,7 @@
 /* configuerable values */
 
 #define ETH_IO_ADDRESS_BASE REG_BASE_SF
+#define HIETH_HW_DESC_DEPTH 48
 
 #define ETH_MDIO_FRQDIV	2
 
@@ -41,7 +46,7 @@ extern int mdio_mode;
 #define HIETH_SFV300_NAME "hieth_sfv300"
 #define MAX_PHY_NAME_LEN 6 /*max limited as : 0:255*/ 
 #define HIETH_MAX_QUEUE_DEPTH 64
-#define HIETH_HW_RXQ_DEPTH 1 /*uboot*/
+#define HIETH_HW_RXQ_DEPTH 52 /*uboot*/
 #define HIETH_HW_TXQ_DEPTH 1 /*uboot*/
 
 #define HIETH_MAX_FRAME_SIZE PKTSIZE_ALIGN /*1536*/
@@ -108,8 +113,12 @@ struct hieth_netdev_local {
 	unsigned long iobase_phys; /* physical io addr */
 	int port	:1; /* 0 => up port,    1 => down port */
 	
+	int desc_hw_offset; /*the offset where we feed hw*/
+	int desc_rec_offset;/*the offset where we receve the package*/
+	struct hieth_frame_desc *hieth_desc_head;
+
 	const char *phy_name;
-	int link_stat;
+	u32 link_stat;
 };
 
 /* ***********************************************************
@@ -121,29 +130,31 @@ struct hieth_netdev_local {
 
 /* read/write IO */
 
-#define _readl(c)	({ unsigned int __v = le32_to_cpu(__raw_readl(c)); __v; })
+#define _readl(c)	({ u32 __v = le32_to_cpu(__raw_readl(c)); __v; })
 #define _writel(v,c)	__raw_writel(cpu_to_le32(v),c)
 
-#define hieth_readl(ld, ofs) ({ unsigned long reg=_readl((ld)->iobase_phys + (ofs)); \
-				hieth_trace(2, "_readl(0x%08X) = 0x%08lX", (int)((ld)->iobase_phys + (ofs)), reg); \
+#define hieth_readl(ld, ofs) ({ u32 reg = _readl((ld)->iobase_phys + (ofs)); \
+				hieth_trace(2, "_readl(0x%08X) = 0x%08X", \
+				(u32)((ld)->iobase_phys + (ofs)), reg); \
 				reg; })
 #define hieth_writel(ld, v, ofs) do{ _writel(v, (ld)->iobase_phys + (ofs)); \
-				hieth_trace(2, "_writel(0x%08X) = 0x%08lX", (int)((ld)->iobase_phys + (ofs)), (unsigned long)(v)); \
+				hieth_trace(2, "_writel(0x%08X) = 0x%08X", \
+				(u32)((ld)->iobase_phys + (ofs)), (u32)(v)); \
 			}while(0)
 
 #define MK_BITS(shift, nbits)	((((shift)&0x1F)<<16) | ((nbits)&0x1F))
 
 #define hieth_writel_bits(ld, v, ofs, bits_desc) do{ \
-		unsigned long _bits_desc = bits_desc; \
-		unsigned long _shift = (_bits_desc)>>16; \
-		unsigned long _reg = hieth_readl(ld, ofs); \
-		unsigned long _mask = ((1<<(_bits_desc & 0x1F)) - 1)<<(_shift); \
+		u32 _bits_desc = bits_desc; \
+		u32 _shift = (_bits_desc)>>16; \
+		u32 _reg = hieth_readl(ld, ofs); \
+		u32 _mask = ((1<<(_bits_desc & 0x1F)) - 1)<<(_shift); \
 		hieth_writel(ld, (_reg &(~_mask)) | (((v)<<(_shift)) &_mask), ofs); \
 	} while(0)
 #define hieth_readl_bits(ld, ofs, bits_desc) ({ \
-		unsigned long _bits_desc = bits_desc; \
-		unsigned long _shift = (_bits_desc)>>16; \
-		unsigned long _mask = ((1<<(_bits_desc & 0x1F)) - 1)<<(_shift); \
+		u32 _bits_desc = bits_desc; \
+		u32 _shift = (_bits_desc)>>16; \
+		u32 _mask = ((1<<(_bits_desc & 0x1F)) - 1)<<(_shift); \
 		(hieth_readl(ld, ofs)&_mask)>>(_shift); })
 
 #define local_lock_init(ld)	

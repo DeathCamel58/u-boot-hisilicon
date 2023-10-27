@@ -28,7 +28,7 @@
 #endif
 #endif /* End of #ifdef __cplusplus */
 
-#define VOU_WBC2_FINISHED_INT    0          /*  «∑Ò π”√WBCÕÍ≥…÷–∂œøÿ÷∆∫Í */
+  
 
 #define VOU_INTCLEAR_ALL        0xffffffff
 #define RGB(r,g,b)   (((r & 0xff) << 16) | ((g & 0xff) << 8) | (b & 0xff))
@@ -105,7 +105,7 @@ typedef enum hiVO_CSC_RANGE_E
 }VO_CSC_RANGE_E;
 
 
-/* »Áπ˚∫Û∆⁄ø™∑≈ACM≤Œ ˝≈‰÷√£¨‘Ú“∆µΩhi_comm_vo.h÷– */
+/* ÔøΩÔøΩÔøΩÔøΩÔøΩÔøΩ⁄øÔøΩÔøΩÔøΩACMÔøΩÔøΩÔøΩÔøΩÔøΩÔøΩÔøΩ√£ÔøΩÔøΩÔøΩÔøΩ∆µÔøΩhi_comm_vo.hÔøΩÔøΩ */
 typedef struct hiVOU_ACM_BLKINFO_S
 {
     HI_U32 bAcmBlkEn;
@@ -147,7 +147,7 @@ typedef enum
 
 typedef struct hiVOU_ACM_S
 {
-    VOU_ACM_BLKINFO_S stAcmBlk[4];  // 4’‚∏ˆ÷µµƒ∫Í‘› ±±ª∂®“Â‘⁄vou_chn.c÷–
+    VOU_ACM_BLKINFO_S stAcmBlk[4];  // 4ÔøΩÔøΩÔøΩ÷µÔøΩƒ∫ÔøΩÔøΩÔøΩ ±ÔøΩÔøΩÔøΩÔøΩÔøΩÔøΩÔøΩÔøΩvou_chn.cÔøΩÔøΩ
 } VOU_ACM_S;
 
 typedef enum hiVOU_DEV_TYPE_E
@@ -161,23 +161,23 @@ typedef enum hiVOU_DEV_TYPE_E
 
 typedef struct hiVOU_DEV_CAPABILITY_S
 {
-    VOU_DEV_TYPE_E  enVoDevType;             /* VO…Ë±∏¿‡–Õ */
-    HI_BOOL         bHdVpssRciv;             /* Ω” ’ÕºœÒ≤ﬂ¬‘ «∑Ò–Ë“™Õ®π˝VPSSΩ” ’ */
-    HI_BOOL         bSdTdeDisp;              /* œ‘ æÕºœÒ≤ﬂ¬‘ «∑Ò–Ë“™Õ®π˝TDE∆¥Ω” */
-    HI_BOOL         bSupportWbc;             /* …Ë÷√÷ß≥÷wbcπ¶ƒ‹ */
-    HI_BOOL         bSptGetScreenFrm;        /*  «∑Ò÷ß≥÷ªÒ»°∆¡ƒªΩ”ø⁄ */
+    VOU_DEV_TYPE_E  enVoDevType;             /* VOÔøΩË±∏ÔøΩÔøΩÔøΩÔøΩ */
+    HI_BOOL         bHdVpssRciv;             /* ÔøΩÔøΩÔøΩÔøΩÕºÔøΩÔøΩÔøΩÔøΩÔøΩÔøΩ«∑ÔøΩÔøΩÔøΩ“™Õ®ÔøΩÔøΩVPSSÔøΩÔøΩÔøΩÔøΩ */
+    HI_BOOL         bSdTdeDisp;              /* ÔøΩÔøΩ æÕºÔøΩÔøΩÔøΩÔøΩÔøΩÔøΩ«∑ÔøΩÔøΩÔøΩ“™Õ®ÔøΩÔøΩTDE∆¥ÔøΩÔøΩ */
+    HI_BOOL         bSupportWbc;             /* ÔøΩÔøΩÔøΩÔøΩ÷ßÔøΩÔøΩwbcÔøΩÔøΩÔøΩÔøΩ */
+    HI_BOOL         bSptGetScreenFrm;        /* ÔøΩ«∑ÔøΩ÷ßÔøΩ÷ªÔøΩ»°ÔøΩÔøΩƒªÔøΩ”øÔøΩ */
 } VOU_DEV_CAPABILITY_S;
 
-/* Ω´Dev°¢LAYERµƒ√∂æŸ∑≈‘⁄¥À¥¶ «Œ™¡À≤ª»√mkp≤„µƒ¥˙¬Î÷±Ω” π”√√∂æŸ±‰¡ø£¨∂¯±ÿ–ÎÕ®π˝µ˜”√œ‡”¶µƒƒ‹¡¶ºØΩ”ø⁄¿¥ µœ÷ */
+/* ÔøΩÔøΩDevÔøΩÔøΩLAYERÔøΩÔøΩ√∂ÔøΩŸ∑ÔøΩÔøΩ⁄¥À¥ÔøΩÔøΩÔøΩŒ™ÔøΩÀ≤ÔøΩÔøΩÔøΩmkpÔøΩÔøΩƒ¥ÔøΩÔøΩÔøΩ÷±ÔøΩÔøΩ πÔøΩÔøΩ√∂ÔøΩŸ±ÔøΩÔøΩÔøΩÔøΩÔøΩÔøΩÔøΩÔøΩÔøΩÔøΩÔøΩÕ®ÔøΩÔøΩÔøΩÔøΩÔøΩÔøΩÔøΩÔøΩ”¶ÔøΩÔøΩÔøΩÔøΩÔøΩÔøΩÔøΩÔøΩÔøΩ”øÔøΩÔøΩÔøΩ µÔøΩÔøΩ */
 /* vou device enumeration */
-/* ŒÔ¿Ìœ‘ æÕ®¬∑√∂æŸ£¨–Ë“™”ÎHAL≤„µƒœ‘ æÕ®¬∑√∂æŸ“ª“ª∂‘”¶ */
+/* ÔøΩÔøΩÔøΩÔøΩÔøΩÔøΩ æÕ®¬∑√∂ÔøΩŸ£ÔøΩÔøΩÔøΩ“™ÔøΩÔøΩHALÔøΩÔøΩÔøΩÔøΩÔøΩ æÕ®¬∑√∂ÔøΩÔøΩ“ª“ªÔøΩÔøΩ”¶ */
 
 typedef enum
 {
     VOU_SW_LAYER_VHD0  = 0,
     VOU_SW_LAYER_VHD1  = 1,    
     VOU_SW_LAYER_VP    = 2,
-    //VOU_SW_LAYER_VHD2  = 2,     /* ‘› ±»Ìº˛≤„√Ê…œ£¨HD2∫ÕSD5“ª÷¬£¨∫Õ”≤º˛Ãÿ–‘±£≥÷“ª÷¬£¨“‘∫Û‘Ÿ∏ƒ */
+    //VOU_SW_LAYER_VHD2  = 2,     /* ÔøΩÔøΩ ±ÔøΩÔøΩÔøΩÔøΩÔøΩÔøΩÔøΩÔøΩœ£ÔøΩHD2ÔøΩÔøΩSD5“ªÔøΩ¬£ÔøΩÔøΩÔøΩ”≤ÔøΩÔøΩÔøΩÔøΩÔøΩ‘±ÔøΩÔøΩÔøΩ“ªÔøΩ¬£ÔøΩÔøΩ‘∫ÔøΩÔøΩŸ∏ÔøΩ */
     VOU_SW_LAYER_VSD0  = 3,
     //VOU_SW_LAYER_VSD1  = 2,
     //VOU_SW_LAYER_VSD2  = 5,
@@ -301,7 +301,7 @@ typedef struct tag_OSD_Logo
 
 HI_VOID VOU_DRV_WriteReg(HI_U32 u32Addr, HI_U32 u32Value);
 HI_VOID VOU_DRV_ReadReg(HI_U32 u32Addr, HI_U32 *pu32Value);
-HI_VOID VOU_DRV_DacSwitch(HI_U32 u32DacId, HI_BOOL bOpen);
+
 HI_VOID VOU_DRV_BoardInit(HI_VOID);
 HI_VOID VOU_DRV_IntRegUpMode(VO_LAYER VoLayer, VOU_INT_MODE_E IntMode);
 HI_VOID VOU_DRV_SetDevIntfType(VO_DEV VoDev, VO_INTF_TYPE_E enIntfType);
@@ -312,13 +312,11 @@ HI_S32 GRAPHIC_DRV_SetCscCoef(HAL_DISP_LAYER_E gfxLayer, VO_CSC_S *pstGfxCsc);
 
 /* interrupt relative                                                       */
 HI_VOID VOU_DRV_DevIntEnable(VO_DEV VoDev, HI_BOOL Enable);
-HI_VOID VOU_DRV_IntSetMode(VO_DEV VoDev, VOU_INT_MODE_E IntMode);
 
 /* surface relative                                                         */
 HI_VOID VOU_DRV_LayerEnable(VO_LAYER VoLayer, HI_BOOL Enable);
 HI_VOID VOU_DRV_SetLayerBkGrd(VO_LAYER VoLayer, HI_U32 u32BkGrd);
-HI_VOID VOU_DRV_SetLayerDataFmt(VO_LAYER VoLayer, VOU_LAYER_PIXERL_FORMAT_E enDataFmt);
-HI_VOID VOU_DRV_VGACscConfig(VO_CSC_S *pstVgaCsc);
+
 /* mixer relative                                                           */
 HI_VOID VOU_DRV_DefLayerBindDev(HI_VOID);
 

@@ -34,6 +34,7 @@
 #ifdef CONFIG_USB_STORAGE
 static int usb_stor_curr_dev = -1; /* current device */
 #endif
+int scan_num = 0;
 
 /* some display routines (info command) */
 char *usb_get_class_desc(unsigned char dclass)
@@ -266,19 +267,31 @@ void usb_display_config(struct usb_device *dev)
 
 static inline char *portspeed(int speed)
 {
-	if (speed == USB_SPEED_HIGH)
-		return "480 Mb/s";
-	else if (speed == USB_SPEED_LOW)
-		return "1.5 Mb/s";
-	else
-		return "12 Mb/s";
+	char *speed_str;
+
+	switch (speed) {
+	case USB_SPEED_SUPER:
+		speed_str = "5 Gb/s";
+		break;
+	case USB_SPEED_HIGH:
+		speed_str = "480 Mb/s";
+		break;
+	case USB_SPEED_LOW:
+		speed_str = "1.5 Mb/s";
+		break;
+	default:
+		speed_str = "12 Mb/s";
+		break;
+	}
+
+	return speed_str;
 }
 
 /* shows the device tree recursively */
 void usb_show_tree_graph(struct usb_device *dev, char *pre)
 {
 	int i, index;
-	int has_child, last_child, port;
+	int has_child, last_child;
 
 	index = strlen(pre);
 	printf(" %s", pre);
@@ -297,7 +310,6 @@ void usb_show_tree_graph(struct usb_device *dev, char *pre)
 				/* found our pointer, see if we have a
 				 * little sister
 				 */
-				port = i;
 				while (i++ < dev->parent->maxchild) {
 					if (dev->parent->children[i] != NULL) {
 						/* found a sister */
@@ -525,14 +537,22 @@ int do_usb(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 		 (strncmp(argv[1], "start", 5) == 0)) {
 		usb_stop();
 		printf("(Re)start USB...\n");
-		i = usb_init_debug(); //FIXME
-		wait_ms(1000);
 		i = usb_init();
 #ifdef CONFIG_USB_STORAGE
-		/* try to recognize storage devices immediately */
+		/* try to recognize storage devices immediately in XHCI*/
 		if (i >= 0)
 			usb_stor_curr_dev = usb_stor_scan(1);
 #endif
+		if (usb_stor_curr_dev) {
+			scan_num = 1;
+			have_xhci_device = 0;
+			i = usb_init();
+#ifdef CONFIG_USB_STORAGE
+			/* try to recognize storage devices immediately in OHCI*/
+			if (i >= 0)
+				usb_stor_curr_dev = usb_stor_scan(1);
+#endif
+		}
 		return 0;
 	}
 	if (strncmp(argv[1], "stop", 4) == 0) {

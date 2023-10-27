@@ -53,7 +53,7 @@
 //for multi area
 #define MULTI_AREA_CFG_LEN 4*8
 
-/* Êä³öÍ¨µÀºÅ*/
+/* ï¿½ï¿½ï¿½Í¨ï¿½ï¿½ï¿½ï¿½*/
 
 typedef enum tagHAL_DISP_OUTPUTCHANNEL_E
 {
@@ -65,7 +65,7 @@ typedef enum tagHAL_DISP_OUTPUTCHANNEL_E
     //HAL_DISP_CHANNEL_DSD3 = 5,       
     //HAL_DISP_CHANNEL_DSD4 = 6,       
     //HAL_DISP_CHANNEL_DSD5 = 7,       
-    //HAL_DISP_CHANNEL_WBC2 = 8,   //Ã»ÓÃµ½
+    //HAL_DISP_CHANNEL_WBC2 = 8,   //Ã»ï¿½Ãµï¿½
     HAL_DISP_CHANNEL_NONE = 1,
     HAL_DISP_CHANNEL_BUTT
 } HAL_DISP_OUTPUTCHANNEL_E;
@@ -106,7 +106,7 @@ typedef enum tagHAL_DISP_LAYER_E
 
 
 
-/*ÊÓÆµÊý¾Ý¶ÁÈ¡Ä£Ê½*/
+/*ï¿½ï¿½Æµï¿½ï¿½ï¿½Ý¶ï¿½È¡Ä£Ê½*/
 typedef enum tagHAL_DISP_DATARMODE_E
 {
     HAL_DISP_INTERLACE = 0,
@@ -118,7 +118,7 @@ typedef enum tagHAL_DISP_DATARMODE_E
 } HAL_DISP_DATARMODE_E;
 
 
-/*ÊÓÆµÖ¡Í¼Ïñ¸ñÊ½*/
+/*ï¿½ï¿½ÆµÖ¡Í¼ï¿½ï¿½ï¿½Ê½*/
 typedef enum tagHAL_DISP_PIXEL_FORMAT_E
 {
     HAL_INPUTFMT_YCbCr_SEMIPLANAR_400     = 0x1,
@@ -173,7 +173,7 @@ typedef enum tagHAL_DISP_PIXEL_FORMAT_E
     
 }HAL_DISP_PIXEL_FORMAT_E;
 
-/*½Ó¿ÚÊä³öÊý¾Ý¸ñÊ½*/
+/*ï¿½Ó¿ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ý¸ï¿½Ê½*/
 typedef enum tagHAL_DISP_INTFDATAFMT_E
 {
     // WBC2 output data format.    
@@ -190,7 +190,7 @@ typedef enum tagHAL_DISP_INTFDATAFMT_E
 } HAL_DISP_INTFDATAFMT_E;
 
 
-//É«²Ê¿Õ¼ä
+//É«ï¿½Ê¿Õ¼ï¿½
 typedef enum hiHAL_CS_E
 {
     HAL_CS_UNKNOWN = 0,
@@ -200,7 +200,7 @@ typedef enum hiHAL_CS_E
     HAL_CS_BUTT
 } HAL_CS_E;
 
-//É«²Ê¿Õ¼ä×ª»»Ä£Ê½
+//É«ï¿½Ê¿Õ¼ï¿½×ªï¿½ï¿½Ä£Ê½
 typedef enum hiHAL_CSC_MODE_E
 {
     HAL_CSC_MODE_NONE = 0,
@@ -242,7 +242,7 @@ typedef enum tagHAL_CCD_IMGID_E
     
 }HAL_CCD_IMGID_E;
 
-/*ÊÓÆµÊý¾Ý¶ÁÈ¡Ä£Ê½*/
+/*ï¿½ï¿½Æµï¿½ï¿½ï¿½Ý¶ï¿½È¡Ä£Ê½*/
 typedef enum tagHAL_VHD_FOD_E
 {
     HAL_T_FIRST = 0,
@@ -398,7 +398,7 @@ typedef enum tagHAL_DISP_TIMODE_E
     HAL_DISP_TIMODE_BUTT,
 } HAL_DISP_TIMODE_E;
 
-/*ÊÓÆµÖ¡Í¬²½ÐÅÏ¢*/
+/*ï¿½ï¿½ÆµÖ¡Í¬ï¿½ï¿½ï¿½ï¿½Ï¢*/
 typedef struct tagHAL_DISP_SYNCINFO_S
 {
     HI_U32  bSynm;
@@ -479,7 +479,7 @@ typedef struct
     HI_U32 thd_low      ;
 } ACCTHD_S;
 
-/*¾ØÐÎ´óÐ¡×ø±êÐÅÏ¢*/
+/*ï¿½ï¿½ï¿½Î´ï¿½Ð¡ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ï¢*/
 typedef struct tagHAL_DISP_RECT_S
 {
     HI_S32 s32SX;       /*source horizontal start position*/

@@ -37,6 +37,9 @@ typedef struct mtd_info nand_info_t;
 extern int nand_curr_device;
 extern nand_info_t nand_info[];
 
+extern unsigned int ecc0_flag;
+extern unsigned int oobsize_real;
+
 static inline int nand_read(nand_info_t *info, loff_t ofs, size_t *len, u_char *buf)
 {
 	return info->read(info, ofs, *len, (size_t *)len, buf);
@@ -119,6 +122,10 @@ int nand_read_skip_bad(nand_info_t *nand, loff_t offset, size_t *length,
 		       u_char *buffer);
 int nand_write_skip_bad(nand_info_t *nand, loff_t offset, size_t *length,
 			u_char *buffer);
+#ifdef CONFIG_SNAPSHOT_BOOT
+int nand_read_skip_bad_snapshot(nand_info_t *nand, loff_t offset,
+		size_t *length, u_char *buffer, char *badcnt);
+#endif
 int nand_erase_opts(nand_info_t *meminfo, const nand_erase_options_t *opts);
 
 #define NAND_LOCK_STATUS_TIGHT	0x01

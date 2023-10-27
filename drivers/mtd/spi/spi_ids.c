@@ -1,9 +1,21 @@
-/******************************************************************************
-*    Copyright (c) 2009-2010.
-*    All rights reserved.
-* ***
-*
-******************************************************************************/
+/*
+ * Copyright (c) 2016-2017 HiSilicon Technologies Co., Ltd.
+ *
+ * This program is free software; you can redistribute  it and/or modify it
+ * under  the terms of  the GNU General Public License as published by the
+ * Free Software Foundation;  either version 2 of the  License, or (at your
+ * option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ */
+
 
 #include <common.h>
 #include <linux/mtd/mtd.h>
@@ -19,10 +31,12 @@
 	printf("%s(%d): " _fmt, __FILE__, __LINE__, ##arg);
 #endif
 
+#ifndef DBG_BUG
 #define DBG_BUG(fmt, args...) do{\
 	printf("%s(%d): BUG !!! " fmt, __FILE__, __LINE__, ##args); \
 	while(1); \
 } while (0)
+#endif
 
 /*****************************************************************************/
 struct spi_tag spitag[1] = {{{0},{0},0,0,0,0,{{0},},{{0},},{{0},}}};
@@ -128,7 +142,7 @@ void spi_get_erase(struct spi_info *spiinfo, struct spi_operation *spiop_erase,
 		if (spiinfo->erase[ix] == NULL)
 			break;
 
-		memcpy(&spiop_erase[ix], spiinfo->erase[ix], 
+		memcpy(&spiop_erase[ix], spiinfo->erase[ix],
 			sizeof(struct spi_operation));
 
 		switch (spiop_erase[ix].size) {

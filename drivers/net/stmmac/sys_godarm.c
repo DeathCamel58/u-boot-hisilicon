@@ -29,3 +29,7 @@ void reset_mac_interface_single(int val)
 	reg &= ~0x20;
 	writel(reg, SYS_CTRL_BASE + TOE_CLK_SRST);
 }
+
+void stmmac_mac_core_reset(void)
+{
+}

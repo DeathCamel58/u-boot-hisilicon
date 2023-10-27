@@ -3,42 +3,70 @@
 # subdirectories here. Add them in the ".gitignore" file
 # in that subdirectory instead.
 #
-# Normal rules
+# Normal rules (sorted alphabetically)
 #
-
-*.rej
-*.orig
+.*
+!.checkpatch.conf
 *.a
+*.asn1.[ch]
+*.bin
+*.cfgout
+*.cover
+*.dtb
+*.dtbo
+*.dtb.S
+*.elf
+*.exe
+*.gcda
+*.gcno
+*.i
+*.img
+*.lex.c
+*.lst
+*.mod.c
+*.mbx
 *.o
-*~
-*.swp
+*.o.*
+*.order
 *.patch
+*.s
+*.su
+*.swp
+*.tab.[ch]
+
+# Build tree
+/build-*
 
 #
 # Top-level generic files
 #
-
+fit-dtb.blob*
+/MLO*
+/SPL*
 /System.map
-/u-boot
-/u-boot.hex
-/u-boot.map
-/u-boot.bin
-/u-boot.srec
-/u-boot.ldr
-/u-boot.ldr.hex
-/u-boot.ldr.srec
-/u-boot.lds
-/u-boot-onenand.bin
-/u-boot-flexonenand.bin
+/u-boot*
+/boards.cfg
+/*.log
+
+#
+# git files that we don't want to ignore even it they are dot-files
+#
+!.gitignore
+!.mailmap
+!.get_maintainer.*
 
 #
 # Generated files
 #
+/spl/
+/tpl/
+/defconfig
 
-*.depend
-/LOG
-/errlog
-/reloc_off
+#
+# Generated include files
+#
+/include/config/
+/include/generated/
 
 # stgit generated dirs
 patches-*
@@ -59,18 +87,25 @@ cscope.*
 /ctags
 /etags
 
-# OneNAND IPL files
-/onenand_ipl/onenand-ipl*
-/onenand_ipl/board/*/onenand*
-/onenand_ipl/board/*/*.S
+# gnu global files
+GPATH
+GRTAGS
+GSYMS
+GTAGS
 
-# Configured stuff
-**/*.dep
+*.orig
+*~
+\#*#
 
-# Built tools
-tools/envcrc
-tools/gen_eth_addr
-tools/mkimage
+# Python cache
+__pycache__
 
-# Built images
-u-boot_hi3520d.bin
+# Python code coverage output (python3-coverage html)
+/htmlcov/
+
+# pylint files
+/pylint.cur
+/pylint.out/
+
+# moveconfig database
+/moveconfig.db

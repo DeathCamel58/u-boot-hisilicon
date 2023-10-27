@@ -6,6 +6,18 @@
 #include "sys_godnet.h"
 #endif
 
+#ifdef CONFIG_GODARM
+#include "sys_godarm.h"
+#endif
+
+#ifdef CONFIG_HI3535
+#include "sys_hi3535.h"
+#endif
+
+#ifdef CONFIG_HI3536
+#include "sys_hi3536.h"
+#endif
+
 #define MII_BUSY 0x00000001
 #define MII_WRITE 0x00000002
 
@@ -17,7 +29,7 @@ void stmmac_mdio_clk_init(struct stmmac_mdio_local *ld)
 	unsigned long tnkclk;
 
 	busclk = CFG_CLK_BUS;
-#ifdef TNK
+#ifdef CONFIG_TNK
 	tnkclk = get_tnkclk(busclk);
 #else
 	tnkclk = busclk >> 1;
@@ -101,6 +113,10 @@ static int stmmac_mdiobus_write(char *devname, unsigned char addr,
 	return 0;
 }
 
+#define PHY_ID_KSZ8051		0x00221550
+#define PHY_ID_KSZ8081		0x00221560
+#define PHY_ID_MASK		0xFFFFFFF0
+
 unsigned int get_phy_device(char *devname, unsigned char phyaddr)
 {
 	u32 phy_id;
@@ -117,8 +133,13 @@ unsigned int get_phy_device(char *devname, unsigned char phyaddr)
 			|| phy_id == 0xFFFF || phy_id == 0xFFFF0000)
 		return 1;
 
-	/* PHY-KSZ8051MNL */
-	if ((phy_id & 0xFFFFFFF0) == 0x221550) {
+#ifndef CONFIG_HI3536_A7
+	/* only need fix KSZ phy when mode is RMII */
+	if (g_interface_mode != INTERFACE_MODE_RMII)
+		return 0;
+#endif
+	/* PHY-KSZ8051RNL */
+	if ((phy_id & PHY_ID_MASK) == PHY_ID_KSZ8051) {
 		unsigned short reg;
 		miiphy_read(devname, phyaddr, 0x1F, &reg);
 		/* set phy RMII 50MHz clk; */
@@ -131,9 +152,25 @@ unsigned int get_phy_device(char *devname, unsigned char phyaddr)
 		miiphy_write(devname, phyaddr, 0x16, reg);
 	}
 
+	/* PHY-KSZ8081 */
+	if ((phy_id & PHY_ID_MASK) == PHY_ID_KSZ8081) {
+		unsigned short val;
+
+		if (miiphy_read(devname, phyaddr, 0x1F, &val) != 0) {
+			printf("PHY 0x1F read failed\n");
+			return -1;
+		};
+		val |= (1 << 7);       /* set phy RMII 50MHz clk; */
+		if (miiphy_write(devname, phyaddr, 0x1F, val) != 0) {
+			printf("PHY 0x1F write failed\n");
+			return -1;
+		}
+	}
+
 	return 0;
 }
 
+static int mdio_registed;
 int stmmac_mdiobus_driver_init(void)
 {
 	stmmac_mdio_local_device.iobase_phys = STMMAC_MDIO_IO_BASE;
@@ -141,9 +178,12 @@ int stmmac_mdiobus_driver_init(void)
 
 	stmmac_mdio_clk_init(&stmmac_mdio_local_device);
 
-	/* GMAC0 PHY init */
-	miiphy_register(GMAC0_PHY_NAME, stmmac_mdiobus_read,
-			stmmac_mdiobus_write);
+	if (!mdio_registed) {
+		/* GMAC0 PHY init */
+		miiphy_register(GMAC0_PHY_NAME, stmmac_mdiobus_read,
+				stmmac_mdiobus_write);
+		mdio_registed = 1;
+	}
 
 	if (!get_phy_device(GMAC0_PHY_NAME, GMAC0_PHY_ADDR))
 		miiphy_set_current_dev(GMAC0_PHY_NAME);

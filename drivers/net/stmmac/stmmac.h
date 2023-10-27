@@ -25,12 +25,22 @@
 #define STMMAC_INVALID_RXPKG_LEN(len) \
 	(!(((len) >= MIN_PKG_LEN) && ((len) <= MAX_PKG_LEN)))
 
+#define INTERFACE_MODE_RGMII 0x20
+#define INTERFACE_MODE_MII 0x0
+#define INTERFACE_MODE_RMII 0x80
+
+#ifndef CONFIG_HI3536_A7
+extern unsigned int g_interface_mode;
+#endif
+
 #define PORT_MOD_10M_MII	0
 #define PORT_MOD_100M_MII	1
 #define PORT_MOD_1000M_GMII	2
 #define PORT_MOD_10M_RGMII	3
 #define PORT_MOD_100M_RGMII	4
 #define PORT_MOD_1000M_RGMII	5
+
+#define DEFAULT_PHY_LINK_TIMES  20000
 
 #define STMMAC_LINKED		(1 << 0)
 #define STMMAC_DUP_FULL	(1 << 1)
@@ -39,7 +49,7 @@
 #define STMMAC_SPD_1000M	(1 << 4)
 
 #define GMAC0_PORT 0
-#ifdef CONFIG_GODNET
+#ifndef STMMAC_SINGLE_MAC
 #define GMAC1_PORT 1
 #endif
 

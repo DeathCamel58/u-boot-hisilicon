@@ -214,7 +214,7 @@ HI_S32 LoadBMP(HI_U8 *u32BmpAddr, OSD_LOGO_T *pVideoLogo)
     Bpp = (BmpInfo.bmiHeader.biBitCount)/8;
     if((Bpp < 2))
     {
-        /* only support 1555¡¢8888  888 bitmap */
+        /* only support 1555ï¿½ï¿½8888  888 bitmap */
         printf("bitmap format not supported!\n");
         return -1;
     }
@@ -321,7 +321,7 @@ HI_VOID VOU_DRV_DateSetting(VO_DEV VoDev, VO_INTF_SYNC_E enOutSync)
     }
     stDispSync.u32hs_inv = HI_TRUE;
     HAL_DISP_SetDateCoeff(VoDev, u32Data);
-    HAL_DISP_DATE_OutCtrl(VoDev, 0x111111);//Õë¶Ô DATE V300
+    HAL_DISP_DATE_OutCtrl(VoDev, 0x111111);//ï¿½ï¿½ï¿½ DATE V300
     HAL_DISP_SetIntfSyncInv(HAL_DISP_INTF_CVBS,&stDispSync);
     return;
 }
@@ -463,14 +463,6 @@ HI_VOID VOU_DRV_LayerEnable(VO_LAYER VoLayer, HI_BOOL Enable)
 HI_VOID VOU_DRV_SetLayerBkGrd(VO_LAYER VoLayer, HI_U32 u32BkGrd)
 {
     g_stHalLayerCfg[VoLayer].u32BkGrd = u32BkGrd;
-    return;
-}
-
-HI_VOID VOU_DRV_SetLayerDataFmt(VO_LAYER VoLayer, VOU_LAYER_PIXERL_FORMAT_E enDataFmt)
-{
-    HAL_DISP_LAYER_E EnVoLayer = VoLayer;
-    HAL_LAYER_SetLayerDataFmt(EnVoLayer, enDataFmt);
-    //HAL_LAYER_SetRegUp(VoLayer);
     return;
 }
 
@@ -632,6 +624,10 @@ HI_VOID VOU_DRV_Open(VO_DEV VoDev)
     HAL_DISP_SYNCINV_S stInv = {0};
     HI_BOOL  bClkEn = HI_TRUE;    
     HI_U32 u32YuvBkGrd = 0;
+    HI_U16 u16VtthLine;
+
+    SYS_HAL_VouHdOutPctrl(VoDev, bClkEn);
+    SYS_HAL_VouDacPctrl(VoDev, bClkEn);
     
     if (VO_INTF_BT656 & g_stHalDevCfg[VoDev].enIntfType
         || VO_INTF_BT1120 & g_stHalDevCfg[VoDev].enIntfType)
@@ -716,6 +712,12 @@ HI_VOID VOU_DRV_Open(VO_DEV VoDev)
         HAL_DISP_CLIP_S stClipData = {0x40,0x40,0x40,0x3ac,0x3c0,0x3c0};
         HAL_DISP_SetIntfClip(VO_INTF_CVBS, HI_TRUE, &stClipData);
     }
+
+    HAL_DISP_SetVtThdMode(VoDev, VOU_INT_MODE_FIELD);
+    HAL_VIDEO_SetLayerUpMode(VoDev, VOU_INT_MODE_FIELD);
+
+    u16VtthLine = stSyncInfo.u16Vact - 100;
+    HAL_DISP_SetVtThd(VoDev, u16VtthLine);
     
     HAL_DISP_SetIntfEnable(VoDev, HI_TRUE);
     VOU_DRV_DevIntEnable(VoDev, HI_TRUE);
@@ -729,7 +731,7 @@ HI_VOID VOU_DRV_Close(HI_S32 VoDev)
 {    
     HAL_DISP_SetIntfEnable(VoDev, HI_FALSE);
     HAL_DISP_SetRegUp(VoDev);
-    /* µÈ´ý¸üÐÂÍê³É */
+    /* ï¿½È´ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ */
     udelay(25 * 1000);
 
     if (VO_INTF_CVBS & g_stHalDevCfg[VoDev].enIntfType)
@@ -760,6 +762,7 @@ HI_VOID VOU_DRV_DefaultSetting(HI_VOID)
     VOU_DRV_DefLayerBindDev();
     HAL_DISP_SetClkGateEnable(1);
     HAL_SYS_SetOutstanding();
+    HAL_DISP_ClearIntStatus(VOU_INTREPORT_ALL);
 
     for (i = 0; i < HAL_DISP_LAYER_GFX2; i++)
     {

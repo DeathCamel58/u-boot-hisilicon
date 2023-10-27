@@ -38,6 +38,7 @@
 #define MCI_DSCADDR		0x94
 #define MCI_BUFADDR		0x98
 #define MCI_FIFO_START		0x100
+#define MMC_UHS_REG_EXT         0x108
 
 /* MCI_BMOD(0x80) details */
 #define BMOD_SWR	(1<<0)
@@ -166,7 +167,7 @@
 #define TX_WMARK	0x8
 
 /* MCI_IDINTEN(0x90) details */
-#define MCI_IDINTEN_MASK (0x00000337)
+#define MCI_IDINTEN_MASK (0x00000337UL)
 #define TI		(0x1<<0)
 #define RI		(0x1<<1)
 #define NI		(0x1<<8)

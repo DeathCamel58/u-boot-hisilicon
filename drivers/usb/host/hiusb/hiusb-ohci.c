@@ -763,10 +763,10 @@ static void td_submit_job(struct usb_device *dev, unsigned long pipe,
 
 static void dl_transfer_length(struct td *td)
 {
-	__u32 tdINFO, tdBE, tdCBP;
+	__u32 tdBE, tdCBP;
 	struct urb_priv *lurb_priv = &urb_priv;
 
-	tdINFO = m32_swap(td->hwINFO);
+	/* tdINFO = m32_swap(td->hwINFO); */
 	tdBE = m32_swap(td->hwBE);
 	tdCBP = m32_swap(td->hwCBP);
 
@@ -1666,6 +1666,49 @@ static char ohci_inited;
 #endif
 #ifdef CONFIG_HI3520D
 #include "hiusb-3520d.c"
+#endif
+#ifdef CONFIG_HI3535
+#include "hiusb-3535.c"
+#endif
+#ifdef CONFIG_HI3516A
+#include "hiusb-3516a.c"
+#endif
+#ifdef CONFIG_HI3536
+#include "hiusb-3536.c"
+#endif
+#ifdef CONFIG_HI3536C
+#include "hiusb-3536c.c"
+#endif
+#ifdef CONFIG_HI3536DV100
+#include "hiusb-3536dv100.c"
+#endif
+#ifdef CONFIG_HI3521A
+#include "hiusb-3521a.c"
+#endif
+#ifdef CONFIG_HI3521D
+#include "hiusb-3521d.c"
+#endif
+#ifdef CONFIG_HI3518EV200
+#include "hiusb-3518ev200.c"
+#endif
+#ifdef CONFIG_HI3516CV300
+#include "hiusb-3516cv300.c"
+#endif
+#ifdef CONFIG_HI3531A
+#include "hiusb-3531a.c"
+#endif
+#ifdef CONFIG_HI3531D
+#include "hiusb-3531d.c"
+#endif
+#if (defined CONFIG_ARCH_HI3519 || defined CONFIG_ARCH_HI3519V101)
+#include "hiusb-3519.c"
+#endif
+
+#ifdef CONFIG_ARCH_HI3516AV200
+#include "hiusb-3516av200.c"
+#endif
+#if (defined CONFIG_ARCH_HI3559 || defined CONFIG_ARCH_HI3556)
+#include "hiusb-3559.c"
 #endif
 
 int usb_lowlevel_init(void)

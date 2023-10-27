@@ -138,6 +138,7 @@
 
 #define CONFIG_CMD_LOADB  /* loadb   common/cmd_load.c*/ 
 
+#define CONFIG_GODBOX
 /*-----------------------------------------------------------------------
  * network config
  -----------------------------------------------------------------------*/
@@ -154,23 +155,12 @@
 /* default is hieth-switch-fabric */
 #define CONFIG_NET_HISFV300
 #ifdef CONFIG_NET_HISFV300
-	#define CONFIG_NET_HISFV300_GODBOX	1
 	#define HISFV_MII_MODE		0
 	#define HISFV_RMII_MODE		1
 	#define HIETH_MII_RMII_MODE_U   HISFV_RMII_MODE
 	#define HIETH_MII_RMII_MODE_D   HISFV_RMII_MODE
 	#define HISFV_PHY_U		1
 	#define HISFV_PHY_D		3
-	#undef HISFV_RESET_GPIO_EN
-	#ifdef HISFV_RESET_GPIO_EN
-		/* godbox use gpio9_6 to control sfv reset */
-		#define HISFV_RESET_GPIO_BASE REG_BASE_GPIO9
-		#define HISFV_RESET_GPIO_DIR 0x400
-		#define HISFV_RESET_GPIO_BIT 6
-		#define HISFV_RESET_GPIO_DIR_OUT 1
-		/* gpio9_6: 0-reset; 1-undo reset */
-		#define HISFV_RESET_GPIO_DATA 0
-	#endif /* HISFV_RESET_GPIO_EN */
 #endif /* CONFIG_NET_HISFV300 */
 
 /*-----------------------------------------------------------------------

@@ -5,7 +5,8 @@
 void hieth_sys_init(void);
 void hieth_sys_exit(void);
 
-void set_inner_phy_addr(unsigned long phyaddr);
+void hieth_set_crg_phy_mode(unsigned char is_rmii_mode);
+void set_inner_phy_addr(u32 phyaddr);
 void set_efuse_unread(void);
 
 void hieth_sys_startup(void);

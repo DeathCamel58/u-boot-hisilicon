@@ -35,9 +35,46 @@
 #include <godarm_vo.h>
 #endif
 
+#ifdef CONFIG_HI3535
+#include <hi3535_vo.h>
+#endif
+
 #ifdef CONFIG_HI3520D
 #include <hi3520d_vo.h>
 #endif
+
+#ifdef CONFIG_HI3516A
+#include <hi3516a_vo.h>
+#endif
+
+#ifdef CONFIG_HI3536
+#include <hi3536_vo.h>
+#endif
+
+#ifdef CONFIG_HI3536C
+#include <hi3536c_vo.h>
+#endif
+
+#ifdef CONFIG_HI3536DV100
+#include <hi3536dv100_vo.h>
+#endif
+
+#ifdef CONFIG_HI3521A
+#include <hi3521a_vo.h>
+#endif
+
+#ifdef CONFIG_HI3521D
+#include <hi3521d_vo.h>
+#endif
+
+#ifdef CONFIG_HI3531A
+#include <hi3531a_vo.h>
+#endif
+
+#ifdef CONFIG_HI3531D
+#include <hi3531d_vo.h>
+#endif
+
 
 extern int load_jpeg(void);
 extern int jpeg_decode(void);

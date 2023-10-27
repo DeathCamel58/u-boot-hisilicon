@@ -122,7 +122,7 @@ typedef struct hiHAL_COEF_ADDR_S
 /****************************************************************************
  * GLOBAL VARIABLES                                                         *
  ****************************************************************************/
-static const HI_S16 g_stNotchCoef_960h_lowpass[23] = { 2, -3,   4, -4,   5, -5,   6,  -7,  7, -8,  8, 246,  8, -8,  7,  -7,   6, -5,   5, -4,   4, -3,  2};  //lowpass 7.75
+//static const HI_S16 g_stNotchCoef_960h_lowpass[23] = { 2, -3,   4, -4,   5, -5,   6,  -7,  7, -8,  8, 246,  8, -8,  7,  -7,   6, -5,   5, -4,   4, -3,  2};  //lowpass 7.75
 
 static HAL_LAYER_CONFIG_S g_stHalLayerCfg[VOU_LAYER_MAX_NUM] =
 {
@@ -217,9 +217,12 @@ HAL_DISP_SYNCINFO_S g_stSyncTiming[VO_OUTPUT_BUTT] =
     //{1,   1,   2,  1200,  42,  3,  1920, 536, 136,   1,    1,   1,  1, 200,  6,  0,  1,  0},    /* 1920*1200@60Hz */
     {1,   1,   2,  1200,  32,  3,  1920, 112,  48,   1,    1,   1,  1,  32,  6,  0,  1,  0},    /* 1920*1200@60Hz CVT (Reduced Blanking) */
 
-    {0,   1,   1,  1440,  37,  3,  2560, 80,   48,   1,    1,   1,  1,  32,  6,  0,  0,  0},    /* 2560*1440@30Hz*/ 
-    {0,   1,   2,  1600,  43,  3,  2560, 14,   6,    1,    1,   1,  1,  4,   6,  0,  0,  0},   /* 2560*1600@60Hz CVT (Reduced Blanking)*/
+    {0,   1,   1,  1440,  40,  1,  2560, 96,   32,   1,    1,   1,  1,  32,  3,  0,  0,  0},    /* 2560*1440@30Hz*/
+    {0,   1,   1,  1440,  40,  1,  2560, 96,   32,   1,    1,   1,  1,  32,  3,  0,  0,  0},    /* 2560*1440@60Hz*/
+    {0,   1,   2,  1600,  43,  3,  2560, 112,  48,   1,    1,   1,  1,  32,  6,  0,  0,  0},    /* 2560*1600@60Hz CVT (Reduced Blanking)*/
+    {0,   1,   1,  2160,  82,  8,  3840, 384,  1056,  1,    1,   1,  1,  88,  10, 0,  0,  0},   /* 3840*2160@25Hz*/
     {0,   1,   1,  2160,  82,  8,  3840, 384,  176,  1,    1,   1,  1,  88,  10, 0,  0,  0},   /* 3840*2160@30Hz*/
+    {0,   1,   1,  2160,  82,  8,  3840, 384,  1056,  1,    1,   1,  1,  88,  10, 0,  0,  0},   /* 3840*2160@50Hz*/
     {0,   1,   1,  2160,  82,  8,  3840, 384,  176,  1,    1,   1,  1,  88,  10, 0,  0,  0},   /* 3840*2160@60Hz*/
 
     {}/* User */
@@ -230,21 +233,21 @@ static HAL_DEV_CONFIG_S g_stHalDevCfg[VOU_DEV_MAX_NUM] =
     {
         .bEnable        = HI_FALSE,
         .u32BkGrd       = VOU_BACKGROUD_DEFAULT,
-        .enIntfType     = VO_INTF_BT1120 | VO_INTF_HDMI | VO_INTF_VGA,
+        .enIntfType     = 0,
         .enOutSync      = VO_OUTPUT_1080P60,           /* for debug: VO_OUTPUT_800x600_60 */
         .enPixelFmt     = HAL_INPUTFMT_YCbCr_SEMIPLANAR_422,     /* VOU_PIXERL_FORMAT_RGB888, VOU_PIXERL_FORMAT_YCBCR422*/
     },
     {
         .bEnable        = HI_FALSE,
         .u32BkGrd       = VOU_BACKGROUD_DEFAULT,
-        .enIntfType     = VO_INTF_VGA,
+        .enIntfType     = 0,
         .enOutSync      = VO_OUTPUT_1080P60,
         .enPixelFmt     = HAL_INPUTFMT_YCbCr_SEMIPLANAR_422,
     },
     {
         .bEnable        = HI_FALSE,
         .u32BkGrd       = VOU_BACKGROUD_DEFAULT,
-        .enIntfType     = VO_INTF_CVBS | VO_INTF_BT656,
+        .enIntfType     = 0,
         .enOutSync      = VO_OUTPUT_PAL,
         .enPixelFmt     = HAL_INPUTFMT_YCbCr_SEMIPLANAR_422,
     }
@@ -306,7 +309,7 @@ static inline HI_BOOL VouDrvIsMultiIntf(VO_INTF_TYPE_E enMuxIntf)
     return ((u32Num <= 1) ? HI_FALSE : HI_TRUE);
 }
 
-/* ÖÐ¶ÏÖÐÊÓÆµ²ã¼Ä´æÆ÷¸üÐÂ·½Ê½ */
+
 HI_VOID VOU_DRV_IntRegUpMode(VO_LAYER VoLayer, VOU_INT_MODE_E IntMode)
 {
     HAL_VIDEO_SetLayerUpMode(VoLayer, IntMode);
@@ -339,18 +342,48 @@ HI_VOID VOU_DRV_SetDevOutSync(HI_S32 VoDev, VO_INTF_SYNC_E enVoOutMode)
 HI_VOID VOU_DRV_DateSetting(VO_DEV VoDev, VO_INTF_SYNC_E enOutSync)
 {
     HI_U32 u32Data;
+    HI_U32 u32DacGc;
+    HI_U32 u32Coeff24;
+    HI_U32 u32Coeff50;
+    HI_U32 u32Coeff51;
+    HI_U32 u32Coeff52;
+    HI_U32 u32Coeff53;
+    HI_U32 u32Coeff54;
+    HI_U32 u32Coeff55;
+    HI_U32 u32Coeff57;
+    HI_U32 u32Coeff61;
     
     switch (enOutSync)
     {
         case VO_OUTPUT_PAL :
-            //u32Data = 0x528414fc;
-            u32Data = 0x528414dc;
+            //u32Data = 0x628412dc;
+            u32Data = 0x628412dc;
+            u32DacGc = 0x3a;
+            u32Coeff57 = 0x80808282;
+            u32Coeff24 = 0x12c99;
+            u32Coeff61 = 0x0;
+            u32Coeff50 = 0x07FF07FF;
+            u32Coeff51 = 0x07FF0204;
+            u32Coeff52 = 0x000007FF;
+            u32Coeff53 = 0x07BF000C;
+            u32Coeff54 = 0x01350135;
+            u32Coeff55 = 0x000C07BF;
             /* disable 960H */
             HAL_DISP_SetDateCoeffByIdx(60, 0);
             break;
         case VO_OUTPUT_NTSC :
             //u32Data = 0x108414fc;
-            u32Data = 0x108414dc;
+            u32Data = 0x000412dc;
+            u32DacGc = 0x38;
+            u32Coeff57 = 0x80808282;
+            u32Coeff24 = 0x12099;
+            u32Coeff61 = 0x1;
+            u32Coeff50 = 0x07FF07FF;
+            u32Coeff51 = 0x07FF0204;
+            u32Coeff52 = 0x000007FF;
+            u32Coeff53 = 0x07BF000C;
+            u32Coeff54 = 0x01350135;
+            u32Coeff55 = 0x000C07BF;
             /* disable 960H */
             HAL_DISP_SetDateCoeffByIdx(60, 0);
             break;
@@ -359,51 +392,58 @@ HI_VOID VOU_DRV_DateSetting(VO_DEV VoDev, VO_INTF_SYNC_E enOutSync)
         {
             if(VO_OUTPUT_960H_PAL == enOutSync)
             {
-                u32Data = 0x528414fc;
+                u32Data = 0x628412dc;
+                u32DacGc = 0x3a;
+                u32Coeff57 = 0x80808080;
+                u32Coeff24 = 0x12c99;
+                u32Coeff61 = 0x0;
+                u32Coeff50 = 0x7f9;
+                u32Coeff51 = 0x20e;
+                u32Coeff52 = 0x7f9;
+                u32Coeff53 = 0x79f0014;
+                u32Coeff54 = 0x14d014d;
+                u32Coeff55 = 0x14079f;
             }
             else if(VO_OUTPUT_960H_NTSC == enOutSync)
             {
-                u32Data = 0x108414fc;
+                u32Data = 0x000412dc;
+                u32DacGc = 0x38;
+                u32Coeff57 = 0x80808383;
+                u32Coeff24 = 0x180cb;
+                u32Coeff61 = 0x1;
+                u32Coeff50 = 0x7f9;
+                u32Coeff51 = 0x20e;
+                u32Coeff52 = 0x7f9;
+                u32Coeff53 = 0x79f0014;
+                u32Coeff54 = 0x14d014d;
+                u32Coeff55 = 0x14079f;
             }
             /* enable 960H date */
             HAL_DISP_SetDateCoeffByIdx(60, 1);
             /* enable notch coef ?? */
             HAL_DISP_SetDateCoeffByIdx(73, 1);
             /* default notch coef */            
-            VOU_HAL_DISP_SetDateNotchCoeff(g_stNotchCoef_960h_lowpass);
+            //VOU_HAL_DISP_SetDateNotchCoeff(g_stNotchCoef_960h_lowpass);
             break;
         }
         default :
             return;
     }
     HAL_DISP_SetDateCoeff(VoDev, u32Data);
-    HAL_DISP_DATE_OutCtrl(VoDev, 0x111111);//Õë¶Ô DATE V300
+    HAL_DISP_DATE_OutCtrl(VoDev, 0x111111);
+    HAL_DISP_SetCvbsGc(VoDev, u32DacGc);    
+    HAL_DISP_SetDateCoeff22(VoDev, 0xa8); 
+    HAL_DISP_SetDateCoeff24(VoDev, u32Coeff24);
+    HAL_DISP_SetDateCoeff50(VoDev, u32Coeff50);
+    HAL_DISP_SetDateCoeff51(VoDev, u32Coeff51);
+    HAL_DISP_SetDateCoeff52(VoDev, u32Coeff52);
+    HAL_DISP_SetDateCoeff53(VoDev, u32Coeff53);
+    HAL_DISP_SetDateCoeff54(VoDev, u32Coeff54);
+    HAL_DISP_SetDateCoeff55(VoDev, u32Coeff55);
+    HAL_DISP_SetDateCoeff57(VoDev, u32Coeff57);
+    HAL_DISP_SetDateCoeff61(VoDev, u32Coeff61);
     return;
 }
-
-//HI_VOID VOU_DRV_DateSetting(VO_DEV VoDev, VO_INTF_SYNC_E enOutSync)
-//{
-//    HI_U32 u32Data;
-//    HAL_DISP_SYNCINV_S stDispSync = {0};
-//    switch (enOutSync)
-//    {
-//        case VO_OUTPUT_PAL :
-//            //u32Data = 0x528414fc;
-//            u32Data = 0x528414dc;
-//            break;
-//        case VO_OUTPUT_NTSC :
-//            //u32Data = 0x108414fc;
-//            u32Data = 0x108414dc;
-//            break;
-//        default :
-//            return;
-//    }
-//    stDispSync.u32hs_inv = HI_TRUE;
-//    HAL_DISP_SetDateCoeff(VoDev, u32Data);
-//    HAL_DISP_DATE_OutCtrl(VoDev, 0x111111);//for DATE V300
-//    HAL_DISP_SetIntfSyncInv(HAL_DISP_INTF_CVBS,&stDispSync);
-//    return;
-//}
 
 /* interrupt relative                                                       */
 HI_VOID VOU_DRV_DevIntEnable(VO_DEV VoDev, HI_BOOL Enable)
@@ -490,7 +530,7 @@ HI_S32 VOU_DRV_CalcCscMatrix(HI_U32 u32Luma, HI_U32 u32Contrast,
     s32Hue      = (HI_S32)u32Hue * 60 / 100;
     s32Satu     = ((HI_S32)u32Satuature - 50) * 2 + 100;    
 
-    /* Ñ¡ÔñÉ«²Ê¿Õ¼ä×ª»»µÄ³£ÏµÊý¾ØÕó */
+    /* Ñ¡ï¿½ï¿½É«ï¿½Ê¿Õ¼ï¿½×ªï¿½ï¿½ï¿½Ä³ï¿½Ïµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ */
     switch (enCscMode)
     {
         case HAL_CSC_MODE_BT601_TO_BT601:
@@ -527,14 +567,14 @@ HI_S32 VOU_DRV_CalcCscMatrix(HI_U32 u32Luma, HI_U32 u32Contrast,
     pstCstCoef->csc_out_dc1 = pstCscTmp->csc_out_dc1;
     pstCstCoef->csc_out_dc2 = pstCscTmp->csc_out_dc2;
 
-    /* C_ratioµÄµ÷½Ú·¶Î§Ò»°ãÊÇ0¡«1.99, C_ratio=s32Contrast/100
-    *  SµÄµ÷½Ú·¶Î§Ò»°ãÎª0~1.99,S=s32Satu/100
-    *  É«µ÷µ÷½Ú²ÎÊýµÄ·¶Î§Ò»°ãÎª-30¡ã~30¡ã,Í¨¹ý²é±í·¨ÇóµÃCOSºÍSINÖµ²¢/1000
+    /* C_ratioï¿½Äµï¿½ï¿½Ú·ï¿½Î§Ò»ï¿½ï¿½ï¿½ï¿½0ï¿½ï¿½1.99, C_ratio=s32Contrast/100
+    *  Sï¿½Äµï¿½ï¿½Ú·ï¿½Î§Ò»ï¿½ï¿½Îª0~1.99,S=s32Satu/100
+    *  É«ï¿½ï¿½ï¿½ï¿½ï¿½Ú²ï¿½ï¿½ï¿½ï¿½Ä·ï¿½Î§Ò»ï¿½ï¿½Îª-30ï¿½ï¿½~30ï¿½ï¿½,Í¨ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½COSï¿½ï¿½SINÖµï¿½ï¿½/1000
     */
     if ((HAL_CSC_MODE_BT601_TO_RGB_PC == enCscMode) || (HAL_CSC_MODE_BT709_TO_RGB_PC == enCscMode)
         || (HAL_CSC_MODE_BT601_TO_RGB_TV == enCscMode) || (HAL_CSC_MODE_BT709_TO_RGB_TV == enCscMode))
     {
-        /* ´Ë¹«Ê½½öÓÃÓÚYUV->RGB×ª»»£¬RGB->YUV×ª»»²»¿ÉÓÃ´Ë¹«Ê½ */
+        /* ï¿½Ë¹ï¿½Ê½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½YUV->RGB×ªï¿½ï¿½ï¿½ï¿½RGB->YUV×ªï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ã´Ë¹ï¿½Ê½ */
         pstCstCoef->csc_coef00 = (s32Contrast * pstCscTmp->csc_coef00) / 100;
         pstCstCoef->csc_coef01 = (s32Contrast * s32Satu * ((pstCscTmp->csc_coef01*COS_TABLE[s32Hue] - pstCscTmp->csc_coef02*SIN_TABLE[s32Hue]) /1000)) / 10000;
         pstCstCoef->csc_coef02 = (s32Contrast * s32Satu * ((pstCscTmp->csc_coef01*SIN_TABLE[s32Hue] + pstCscTmp->csc_coef02*COS_TABLE[s32Hue]) /1000)) / 10000;
@@ -548,8 +588,8 @@ HI_S32 VOU_DRV_CalcCscMatrix(HI_U32 u32Luma, HI_U32 u32Contrast,
     }
     else
     {    
-        /* ´Ë¹«Ê½½öÓÃÓÚRGB->YUV×ª»»£¬YUV->RGB×ª»»²»¿ÉÓÃ´Ë¹«Ê½£¬
-        *  YUV->YUV½öµ÷½ÚÍ¼ÏñÐ§¹û¿ÉÓÃ´Ë¹«Ê½£¬ÒòÎª³£Á¿¾ØÕóÎªµ¥Î»¾ØÕó */
+        /* ï¿½Ë¹ï¿½Ê½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½RGB->YUV×ªï¿½ï¿½ï¿½ï¿½YUV->RGB×ªï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ã´Ë¹ï¿½Ê½ï¿½ï¿½
+        *  YUV->YUVï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Í¼ï¿½ï¿½Ð§ï¿½ï¿½ï¿½ï¿½ï¿½Ã´Ë¹ï¿½Ê½ï¿½ï¿½ï¿½ï¿½Îªï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Îªï¿½ï¿½Î»ï¿½ï¿½ï¿½ï¿½ */
         pstCstCoef->csc_coef00 = (s32Contrast * pstCscTmp->csc_coef00) / 100;
         pstCstCoef->csc_coef01 = (s32Contrast * pstCscTmp->csc_coef01) / 100;
         pstCstCoef->csc_coef02 = (s32Contrast * pstCscTmp->csc_coef02) / 100;
@@ -621,17 +661,17 @@ HI_VOID VOU_DRV_VGACscConfig(VO_CSC_S *pstVgaCSC)
 HI_VOID VOU_DRV_DefLayerBindDev(HI_VOID)
 {
     
-    /* MUX1¿É»ìºÏVHD0/VP/G0/HC0 */
+    /* MUX1ï¿½É»ï¿½ï¿½VHD0/VP/G0/HC0 */
     HAL_CBM_SetCbmMixerPrio(VOU_LAYER_VHD0, VOU_MIX_PRIO0, VOU_DEV_DHD0);
     HAL_CBM_SetCbmMixerPrio(VOU_LAYER_VP, VOU_MIX_PRIO1, VOU_DEV_DHD0);//HAL_CBM_SetCbmMixerPrio(VOU_LAYER_VHD2, VOU_MIX_PRIO1, VOU_DEV_DHD0);
     HAL_CBM_SetCbmMixerPrio(VOU_LAYER_G0, VOU_MIX_PRIO2, VOU_DEV_DHD0);
     HAL_CBM_SetCbmMixerPrio(VOU_LAYER_HC0, VOU_MIX_PRIO3, VOU_DEV_DHD0);
 
-    /* MUX3¿É»ìºÏVHD2/G4*/
+    /* MUX3ï¿½É»ï¿½ï¿½VHD2/G4*/
     HAL_CBM_SetCbmMixerPrio(VOU_LAYER_VHD1, VOU_MIX_PRIO0, VOU_DEV_DHD1);
     HAL_CBM_SetCbmMixerPrio(VOU_LAYER_G4, VOU_MIX_PRIO2, VOU_DEV_DHD1);
 
-    /* MUX4¿É»ìºÏVSD0/G1/HC0 */
+    /* MUX4ï¿½É»ï¿½ï¿½VSD0/G1/HC0 */
     HAL_CBM_SetCbmMixerPrio(VOU_LAYER_VSD0, VOU_MIX_PRIO0, VOU_DEV_DSD0);
     HAL_CBM_SetCbmMixerPrio(VOU_LAYER_G1, VOU_MIX_PRIO1, VOU_DEV_DSD0);
 
@@ -810,28 +850,38 @@ HI_VOID VOU_DRV_SetDevClk(VO_DEV VoDev)
             case VO_OUTPUT_2560x1440_30:
             {
                 //148.5MHz?
-                u32Fbdiv = 99;
-                u32Frac = 0;
+                u32Fbdiv = 159;
+                u32Frac = 2796202;
                 u32Refdiv = 2;
-                u32Postdiv1 = 4;
-                u32Postdiv2 = 1;
+                u32Postdiv1 = 2;
+                u32Postdiv2 = 4;
+                break;
+            }
+            case VO_OUTPUT_2560x1440_60:
+            {
+                //148.5MHz?
+                u32Fbdiv = 159;
+                u32Frac = 2796202;
+                u32Refdiv = 2;
+                u32Postdiv1 = 1;
+                u32Postdiv2 = 4;
                 break;
             }            
             case VO_OUTPUT_2560x1600_60:
             {
                 //268.5MHz
-                /* ÏµÊýÐèÒªÖØÐÂ¼ÆËã */
-                u32Fbdiv = 537;
+                u32Fbdiv = 179;
                 u32Frac = 0;
                 u32Refdiv = 2;
-                u32Postdiv1 = 6;
-                u32Postdiv2 = 2;
+                u32Postdiv1 = 4;
+                u32Postdiv2 = 1;
                 break;
             }
             case VO_OUTPUT_3840x2160_30:
+            case VO_OUTPUT_3840x2160_25:
             {
                 //297MHz
-                /* ÏµÊýÐèÒªÖØÐÂ¼ÆËã */
+                /* Ïµï¿½ï¿½ï¿½ï¿½Òªï¿½ï¿½ï¿½Â¼ï¿½ï¿½ï¿½ */
                 u32Fbdiv = 99;
                 u32Frac = 0;
                 u32Refdiv = 2;
@@ -840,9 +890,10 @@ HI_VOID VOU_DRV_SetDevClk(VO_DEV VoDev)
                 break;
             }            
             case VO_OUTPUT_3840x2160_60:
+            case VO_OUTPUT_3840x2160_50:
             {
                 //594MHz
-                /* ÏµÊýÐèÒªÖØÐÂ¼ÆËã */
+                /* Ïµï¿½ï¿½ï¿½ï¿½Òªï¿½ï¿½ï¿½Â¼ï¿½ï¿½ï¿½ */
                 u32Fbdiv = 99;
                 u32Frac = 0;
                 u32Refdiv = 2;
@@ -907,10 +958,12 @@ HI_U32 VouDrvGetDevVtth(VO_DEV VoDev)
         switch ( g_stHalDevCfg[VoDev].enOutSync )
         {
             case VO_OUTPUT_3840x2160_60 :
+            case VO_OUTPUT_3840x2160_50 :
                 u32DevVtth = 4 * VOU_HD_VTTH_WATERLINE;
                 break;
             case VO_OUTPUT_2560x1600_60 :       
             case VO_OUTPUT_3840x2160_30 :
+            case VO_OUTPUT_3840x2160_25 :
                 u32DevVtth = 2 * VOU_HD_VTTH_WATERLINE;
                 break;
             default:
@@ -945,9 +998,13 @@ HI_VOID VOU_DRV_Open(HI_S32 VoDev)
         SYS_HAL_SelVoHdDacClk(VoDev);
         SYS_HAL_VouHdDacClkEn(HI_TRUE);
     }
+    if (VO_INTF_BT1120& g_stHalDevCfg[VoDev].enIntfType)
+    {
+        SYS_HAL_VouBt1120ClkSel(VoDev); 
+        SYS_HAL_VouBt1120ClkEn(HI_TRUE);             
+    }
     if (VO_INTF_HDMI & g_stHalDevCfg[VoDev].enIntfType)
     {
-        printf("%s:%d\n", __func__, __LINE__);
         SYS_HAL_SelVoHDMIClk(VoDev);
     }
     stBkg.u8Bkg_y = YUV_Y(g_stHalDevCfg[VoDev].u32BkGrd);
@@ -962,6 +1019,12 @@ HI_VOID VOU_DRV_Open(HI_S32 VoDev)
     memcpy(&stSyncInfo, &g_stSyncTiming[g_stHalDevCfg[VoDev].enOutSync], sizeof(stSyncInfo));    
     stInv.u32hs_inv = stSyncInfo.bIhs ? 1:0;    
     stInv.u32vs_inv = stSyncInfo.bIvs ? 1:0;
+
+    if (VO_INTF_BT1120 & g_stHalDevCfg[VoDev].enIntfType)
+    {
+        HAL_DISP_SetIntfMuxSel(VoDev,VO_INTF_BT1120);        
+        HAL_DISP_SetIntfSyncInv(VO_INTF_BT1120,&stInv);
+    }
     if (VO_INTF_VGA & g_stHalDevCfg[VoDev].enIntfType)
     {
         stVgaCSC.enCscMatrix = VO_CSC_MATRIX_BT709_TO_RGB_PC;
@@ -1000,8 +1063,6 @@ HI_VOID VOU_DRV_Open(HI_S32 VoDev)
         HAL_DISP_SetIntfMuxSel(VoDev,VO_INTF_CVBS);        
         HAL_DISP_CvbsDacEn(VoDev, HI_TRUE);        
         HAL_DISP_SetIntfDacEnable(VO_INTF_CVBS, HI_TRUE);
-        HAL_DISP_SetCvbsGc(VoDev, 0x3a);
-        HAL_DISP_SetDateCoeff22(VoDev, 0xa8);
         HAL_DISP_SetIntfSyncInv(HAL_DISP_INTF_CVBS,&stInv);
     }
     if (HI_TRUE == VouDrvIsMultiIntf(g_stHalDevCfg[VoDev].enIntfType))
@@ -1049,13 +1110,18 @@ HI_VOID VOU_DRV_Open(HI_S32 VoDev)
     /* set clip */ 
     if (VO_INTF_HDMI & g_stHalDevCfg[VoDev].enIntfType)        
     {   
-        printf("%s:%d\n", __func__, __LINE__);
         HAL_DISP_CLIP_S stClipData = {0x4,0x4,0x4,0x3F8,0x3F8,0x3F8};
         HAL_DISP_SetIntfClip(VO_INTF_HDMI, HI_TRUE, &stClipData);
     }    
     if(VO_INTF_BT1120& g_stHalDevCfg[VoDev].enIntfType)          
     {       
         HAL_DISP_CLIP_S stClipData = {0x10,0x10,0x10,0xeb,0xeb,0xeb};
+        stClipData.u16ClipHigh_y = stClipData.u16ClipHigh_y << 2;
+        stClipData.u16ClipHigh_cb = stClipData.u16ClipHigh_cb << 2;
+        stClipData.u16ClipHigh_cr = stClipData.u16ClipHigh_cr << 2;
+        stClipData.u16ClipLow_y = stClipData.u16ClipLow_y << 2;
+        stClipData.u16ClipLow_cb = stClipData.u16ClipLow_cb << 2;
+        stClipData.u16ClipLow_cr = stClipData.u16ClipLow_cr << 2;
         HAL_DISP_SetIntfClip(VO_INTF_BT1120, HI_TRUE, &stClipData);
     }
     if(VO_INTF_CVBS & g_stHalDevCfg[VoDev].enIntfType)          
@@ -1066,28 +1132,19 @@ HI_VOID VOU_DRV_Open(HI_S32 VoDev)
 
     #if 0
     if ((0 == stSyncInfo.bIop) && VOU_IS_HD_HW_DEV(VoDev)
-        && !(VO_INTF_BT656 & g_stHalDevCfg[VoDev].enIntfType))  //HD BT656²ÉÈ¡ÖðÐÐ±¨ÖÐ¶Ï£¬²»¹ýÒ²¿ÉÒÔ¸ôÐÐ±¨
+        && !(VO_INTF_BT656 & g_stHalDevCfg[VoDev].enIntfType))  //HD BT656ï¿½ï¿½È¡ï¿½ï¿½ï¿½Ð±ï¿½ï¿½Ð¶Ï£ï¿½ï¿½ï¿½ï¿½ï¿½Ò²ï¿½ï¿½ï¿½Ô¸ï¿½ï¿½Ð±ï¿½
     #else
-    if ((0 == stSyncInfo.bIop) && ((VOU_DEV_DHD0==(VoDev)) || (VOU_DEV_DHD1==(VoDev))))
+    if (0 == stSyncInfo.bIop)
     #endif
     {
         IntMode = VOU_INT_MODE_FIELD;
-        u16VtthLine = stSyncInfo.u16Vact - VouDrvGetDevVtth(VoDev);
     }
     else
     {
         IntMode = VOU_INT_MODE_FRAME;
-
-        if (0 == stSyncInfo.bIop)
-        {
-            u16VtthLine = stSyncInfo.u16Vact*2 - VouDrvGetDevVtth(VoDev);
-        }
-        else
-        {            
-            u16VtthLine = stSyncInfo.u16Vact - VouDrvGetDevVtth(VoDev);
-        }
     }
 
+    u16VtthLine = stSyncInfo.u16Vact - VouDrvGetDevVtth(VoDev);
     VOU_DRV_IntSetMode(VoDev, IntMode);
     VOU_DRV_IntRegUpMode(VoDev, IntMode);
     HAL_DISP_SetVtThd(VoDev, u16VtthLine);
@@ -1114,6 +1171,10 @@ HI_VOID VOU_DRV_Close(HI_S32 VoDev)
     {
         SYS_HAL_VouHdDacClkEn(HI_FALSE);
     }
+    if (VO_INTF_BT1120& g_stHalDevCfg[VoDev].enIntfType)
+    {
+        SYS_HAL_VouBt1120ClkEn(HI_FALSE);             
+    }
 
     g_stHalDevCfg[VoDev].bEnable = HI_FALSE;
     
@@ -1139,6 +1200,7 @@ HI_VOID VOU_DRV_DefaultSetting(HI_VOID)
     VOU_DRV_DefLayerBindDev();
     //Vou Clock gate ctrl enable
     HAL_DISP_SetClkGateEnable(1);
+    HAL_SYS_SetAxiMaster();
     /* outstanding */
     HAL_SYS_SetOutstanding();
     HAL_DISP_ClearIntStatus(VOU_INTREPORT_ALL);
@@ -1149,11 +1211,7 @@ HI_VOID VOU_DRV_DefaultSetting(HI_VOID)
         VOU_DRV_SetLayerBkGrd(i, VOU_BACKGROUD_DEFAULT);
     }
 
-    for (i = 0; i < VOU_DEV_MAX_NUM; i++)
-    {
-        VOU_DRV_IntSetMode(i, VOU_INT_MODE_FRAME);
-        VOU_DRV_IntRegUpMode(i, VOU_INT_MODE_FIELD);
-    }
+    HAL_DISP_SetIntfMuxDefaultSel(); 
     
     return;
 }

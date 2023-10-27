@@ -36,7 +36,16 @@ GLSOBJS	+= _umodsi3.o
 
 GLCOBJS	+= div0.o
 SOBJS-y	+= mmu.o
-
+SOBJS-$(CONFIG_HI3516A) += cache_ops.o
+SOBJS-$(CONFIG_HI3536) += cache_ops.o
+SOBJS-$(CONFIG_HI3536C) += cache_ops.o
+SOBJS-$(CONFIG_HI3536DV100) += cache_ops.o
+SOBJS-$(CONFIG_HI3521A) += cache_ops.o
+SOBJS-$(CONFIG_HI3521D) += cache_ops.o
+SOBJS-$(CONFIG_HI3519) += cache_ops.o
+SOBJS-$(CONFIG_HI3519V101) += cache_ops.o
+SOBJS-$(CONFIG_HI3516AV200) += cache_ops.o
+SOBJS-$(CONFIG_HI3559) += cache_ops.o
 COBJS-y	+= board.o
 COBJS-y	+= bootm.o
 COBJS-y	+= cache.o
@@ -46,6 +55,23 @@ COBJS-y	+= cache-cp15.o
 endif
 COBJS-y	+= interrupts.o
 COBJS-y	+= reset.o
+COBJS-y += ddr_layout.o
+COBJS-y += ddr_size.o
+COBJS-y += cpu_info.o
+
+SOBJS-$(CONFIG_USE_ARCH_MEMSET) += memset.o
+SOBJS-$(CONFIG_USE_ARCH_MEMCPY) += memcpy.o
+
+ifdef CONFIG_SNAPSHOT_BOOT
+COBJS-y += $(shell if [ $(__ARM_ARCH__) -eq 7 ] ; then \
+	echo "hibernate.o"; \
+	else if [ $(__ARM_ARCH__) -eq 5 ] ; then \
+	echo "hibernate_arm9.o"; fi; fi)
+
+SOBJS-y += $(shell if [ $(__ARM_ARCH__) -eq 7 ] ; then \
+	echo "cpu_helper_a7.o"; fi)
+SOBJS-y += bootm_asm.o
+endif
 
 SRCS	:= $(GLSOBJS:.o=.S) $(GLCOBJS:.o=.c) \
 	   $(SOBJS-y:.o=.S) $(COBJS-y:.o=.c)

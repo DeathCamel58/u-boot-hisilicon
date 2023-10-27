@@ -196,23 +196,12 @@
 /* default is hieth-switch-fabric */
 #define CONFIG_NET_HISFV300
 #ifdef CONFIG_NET_HISFV300
-	#define CONFIG_NET_HISFV300_3518	1
 	#define HISFV_MII_MODE			0
 	#define HISFV_RMII_MODE			1
 	#define HIETH_MII_RMII_MODE_U		HISFV_MII_MODE
 	#define HIETH_MII_RMII_MODE_D		HISFV_MII_MODE
 	#define HISFV_PHY_U			1
 	#define HISFV_PHY_D			2 /* fix me */
-	#undef HISFV_RESET_GPIO_EN
-	#ifdef HISFV_RESET_GPIO_EN
-		/* use gpio5_0 to control sfv reset */
-		#define HISFV_RESET_GPIO_BASE	GPIO0_REG_BASE
-		#define HISFV_RESET_GPIO_DIR	0x400
-		#define HISFV_RESET_GPIO_BIT	5
-		#define HISFV_RESET_GPIO_DIR_OUT 1
-		/* 0-reset; 1-undo reset */
-		#define HISFV_RESET_GPIO_DATA	0
-	#endif /* HISFV_RESET_GPIO_EN */
 #endif /* CONFIG_NET_HISFV300 */
 
 /*-----------------------------------------------------------------------
@@ -231,7 +220,7 @@
 #define CFG_CMDLINE_HISTORYS		8
 #define CONFIG_CMDLINE_EDITING
 #define CFG_DDR_PHYS_OFFSET		MEM_BASE_DDR
-#define CFG_DDR_SIZE			(256 * 1024 * 1024)	/* 256M Bytes */
+#define CFG_DDR_SIZE			(256 * 1024 * 1024UL)	/* 256M Bytes */
 
 #define CONFIG_SYS_MEMTEST_START	(CFG_DDR_PHYS_OFFSET +\
 						sizeof(unsigned long))

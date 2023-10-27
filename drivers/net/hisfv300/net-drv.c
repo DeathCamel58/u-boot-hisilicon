@@ -26,15 +26,9 @@ char D_PHY_NAME[MAX_PHY_NAME_LEN];
 unsigned char U_PHY_ADDR = HISFV_PHY_U;
 unsigned char D_PHY_ADDR = HISFV_PHY_D;
 
-#ifndef INNER_PHY
-void set_efuse_unread(void)
-{
-}
-
-void set_inner_phy_addr(unsigned long phyaddr)
-{
-}
-#endif
+#define INTERFACE_MODE_MII 0x0
+#define INTERFACE_MODE_RMII 0x1
+static unsigned int g_interface_mode = HIETH_MII_RMII_MODE_U;
 
 #define MAC_LEN 6
 
@@ -172,6 +166,55 @@ static int set_random_mac_address(unsigned char * mac, unsigned char * ethaddr)
     return 0;
 }
 
+static int hieth_init_hw_desc_queue(struct hieth_netdev_local *ld)
+{
+	struct hieth_frame_desc *queue_phy_addr = NULL;
+	int queue_count = 0;
+	int i;
+
+	/* init rx fq */
+	queue_count = HIETH_HW_DESC_DEPTH;
+
+	queue_phy_addr = (struct hieth_frame_desc *)malloc(queue_count * sizeof(struct hieth_frame_desc));
+	if (!queue_phy_addr) {
+		printf("alloc rx fq error!\n");
+		return 1;
+	}
+
+	memset((void *)queue_phy_addr, 0, queue_count * sizeof(struct hieth_frame_desc));
+	ld->hieth_desc_head = queue_phy_addr;
+	ld->desc_hw_offset = 0;
+	ld->desc_rec_offset = 0;
+
+	for (i = 0; i < HIETH_HW_DESC_DEPTH; i++) {
+		queue_phy_addr[i].frm_addr = (unsigned long)memalign(PKTALIGN, PKTSIZE_ALIGN);
+		if (!queue_phy_addr[i].frm_addr) {
+			printf("alloc rx data buffer failed, no memory!\n");
+			return 1;
+		}
+		queue_phy_addr[i].frm_len = 0;
+	}
+	return 0;
+}
+
+static int hieth_destroy_hw_desc_queue(struct hieth_netdev_local *ld)
+{
+	struct hieth_frame_desc *queue_phy_addr = ld->hieth_desc_head;
+	int i;
+
+	if (queue_phy_addr) {
+		for (i = 0; i < HIETH_HW_DESC_DEPTH; i++)
+			free((void *)queue_phy_addr[i].frm_addr);
+
+		free(ld->hieth_desc_head);
+		ld->hieth_desc_head = NULL;
+	}
+	ld->desc_hw_offset = 0;
+	ld->desc_rec_offset = 0;
+
+	return 0;
+}
+
 int eth_set_host_mac_address(void)
 {
 	char* s;
@@ -205,7 +248,7 @@ int eth_set_host_mac_address(void)
 static void phy_print_status(struct hieth_netdev_local *ld, int stat)
 {
 	printf("%s : phy status change : LINK=%s : DUPLEX=%s : SPEED=%s\n", \
-			(ld->port==UP_PORT) ? "UP_PORT" : "DOWN_PORT", \
+			(ld->port == UP_PORT) ? "eth0" : "eth1", \
 			(stat & HIETH_LINKED) ? "UP" : "DOWN", \
 			(stat & HIETH_DUP_FULL) ? "FULL" : "HALF", \
 			(stat & HIETH_SPD_100M) ? "100M" : "10M");
@@ -213,7 +256,7 @@ static void phy_print_status(struct hieth_netdev_local *ld, int stat)
 
 static void hieth_adjust_link(struct hieth_netdev_local *ld)
 {
-	int stat = 0;
+	u32 stat = 0;
 	int timeout_us = 1000;
     /*this env phy_link_time used to solve the difference phy auto-negotiation time of  various phys*/
     char* timeout = getenv("phy_link_time");
@@ -221,12 +264,6 @@ static void hieth_adjust_link(struct hieth_netdev_local *ld)
         timeout_us = simple_strtol(timeout,0, 10);
         if(timeout_us < 0)
             timeout_us = 1000;
-    }
-    {
-        u16 reg = 0;
-        miiphy_read(UD_REG_NAME(PHY_NAME), UD_REG_NAME(PHY_ADDR), PHY_ANAR, &reg);
-        reg |= 0x1E0;
-        miiphy_write(UD_REG_NAME(PHY_NAME), UD_REG_NAME(PHY_ADDR), PHY_ANAR, reg);
     }
 retry:
 	udelay(1);
@@ -242,7 +279,9 @@ retry:
 		hieth_set_linkstat(ld, stat);
 		phy_print_status(ld, stat);
 		ld->link_stat = stat;
+		hieth_set_mii_mode(ld, g_interface_mode);
 	}
+
 	set_phy_valtage();
 }
 
@@ -260,7 +299,7 @@ static int hieth_net_open(struct hieth_netdev_local *ld)
 	ld->link_stat = 0;
 	hieth_adjust_link(ld);
 
-	hieth_irq_enable(ld, UD_BIT_NAME(HIETH_INT_RX_RDY));
+	hieth_irq_enable(ld, UD_BIT_NAME(HIETH_INT_MULTI_RXRDY));
 
 	return 0;
 }
@@ -277,6 +316,7 @@ static int hieth_net_close(struct hieth_netdev_local *ld)
 static int hieth_dev_probe_init(int port)
 {
 	struct hieth_netdev_local *ld = &hieth_devs[port];
+	int ret;
 
 	if( (UP_PORT != port) && (DOWN_PORT != port) )
 		return -1;//-ENODEV
@@ -289,6 +329,12 @@ static int hieth_dev_probe_init(int port)
 
 	hieth_glb_preinit_dummy(ld);
 
+	ret = hieth_init_hw_desc_queue(ld);
+	if (ret) {
+		hieth_destroy_hw_desc_queue(ld);
+		return -1;
+	}
+
 	hieth_sys_allstop();
 
 	return 0;
@@ -296,6 +342,8 @@ static int hieth_dev_probe_init(int port)
 
 static int hieth_dev_remove(struct hieth_netdev_local *ld)
 {
+	hieth_destroy_hw_desc_queue(ld);
+
 	return 0;
 }
 
@@ -303,6 +351,21 @@ static int hieth_init(void)
 {
 	int ret = 0;
 	char *phyaddr = NULL;
+	char *mdio_intf = NULL;
+
+	/*get mdio interface from env.FORMAT: mdio_intf=mii or mdio_intf=rmii*/
+	mdio_intf = getenv("mdio_intf");
+	if (mdio_intf) {
+		if (!strncmp(mdio_intf, "mii", 3))
+			g_interface_mode = INTERFACE_MODE_MII;
+		else if (!strncmp(mdio_intf, "rmii", 4))
+			g_interface_mode = INTERFACE_MODE_RMII;
+		else
+			printf("Invalid mdio_intf, should be mii or rmii.\n");
+	}
+#if defined(CONFIG_HI3536DV100)
+	hieth_set_crg_phy_mode(g_interface_mode);
+#endif
 
 	/*get phy addr of up port*/
 	phyaddr = getenv("phyaddru");
@@ -326,6 +389,7 @@ static int hieth_init(void)
 	set_inner_phy_addr(U_PHY_ADDR);
 	#endif
 
+	/* MAX_PHY_NAME_LEN is 6, be carefull to make U_PHY_NAME */
 	sprintf(U_PHY_NAME, "0:%d", U_PHY_ADDR);
 
 	/*get phy addr of down port*/
@@ -345,7 +409,7 @@ static int hieth_init(void)
 		D_PHY_ADDR = INNER_PHY_ADDR_D;
 		#endif
 	}
-	sprintf(D_PHY_NAME, "0:%d", D_PHY_ADDR);
+	sprintf(D_PHY_NAME, "1:%d", D_PHY_ADDR);
 
 	printf(OSDRV_MODULE_VERSION_STRING"\n");
 
@@ -401,6 +465,7 @@ int eth_init(bd_t * bd)
 {
 	int res;
 	int count = 30;
+
 	res = hieth_init();
 	if(res)
 		goto _error_hieth_init;
@@ -430,7 +495,7 @@ retry:
 	if( --count )
 		goto retry;
 
-	printf("Up/Down PHY not link.\n");
+	printf("PHY not link.\n");
 
 _error_hieth_init:
 
@@ -450,8 +515,14 @@ _link_ok:
 int eth_rx(void)
 {
 	int recvq_ready, timeout_us = 10000;
-	struct hieth_frame_desc fd;
+	struct hieth_frame_desc *fd;
 	struct hieth_netdev_local *ld = hieth_curr;
+	struct hieth_frame_desc receive_fd;
+	int hw_offset, rec_offset;
+
+	fd = ld->hieth_desc_head;
+	hw_offset = ld->desc_hw_offset;
+	rec_offset = ld->desc_rec_offset;
 
 	/* check this we can add a Rx addr */
 	recvq_ready = hieth_readl_bits(ld, UD_REG_NAME(GLB_RO_QUEUE_STAT), BITS_RECVQ_RDY);
@@ -459,35 +530,46 @@ int eth_rx(void)
 		hieth_trace(7, "hw can't add a rx addr.");
 	}
 
-	/* enable rx int */
-	hieth_irq_enable(ld, UD_BIT_NAME(HIETH_INT_RX_RDY));
+	while (recvq_ready &&
+	       ((hw_offset + 1) % HIETH_HW_DESC_DEPTH != rec_offset)) {
+		receive_fd = fd[hw_offset];
+		hw_recvq_setfd(ld, receive_fd);
 
-	/* fill rx hwq fd */
-	fd.frm_addr = (unsigned long)NetRxPackets[0];
-	fd.frm_len = 0;
-	hw_recvq_setfd(ld, fd);
+		hw_offset = (hw_offset + 1) % HIETH_HW_DESC_DEPTH;
+
+		recvq_ready =
+			hieth_readl_bits(ld, UD_REG_NAME(GLB_RO_QUEUE_STAT),
+					 BITS_RECVQ_RDY);
+	}
+	ld->desc_hw_offset = hw_offset;
 
 	/* receive packed, loop in NetLoop */
-	while(--timeout_us && !is_recv_packet(ld))
+	while (--timeout_us && !is_recv_packet_rx(ld))
 		udelay(1);
 		
-	if( is_recv_packet(ld) ) {
+	if (is_recv_packet_rx(ld)) {
+		receive_fd = fd[rec_offset];
 
 		/*hwid = hw_get_rxpkg_id(ld);*/
-		fd.frm_len = hw_get_rxpkg_len(ld);
+		receive_fd.frm_len = hw_get_rxpkg_len(ld);
 		hw_set_rxpkg_finish(ld);
 
-		if(HIETH_INVALID_RXPKG_LEN(fd.frm_len)) {
-			hieth_error("frm_len invalid (%d).", fd.frm_len);
+		rec_offset = (rec_offset + 1) % HIETH_HW_DESC_DEPTH;
+		ld->desc_rec_offset = rec_offset;
+
+		if (HIETH_INVALID_RXPKG_LEN(receive_fd.frm_len)) {
+			hieth_error("frm_len invalid (%d)", receive_fd.frm_len);
 			goto _error_exit;
 		}
 
+		memcpy((void *)NetRxPackets[0], (void *)receive_fd.frm_addr,
+		       receive_fd.frm_len);
+
 		/* Pass the packet up to the protocol layers. */
-		NetReceive ((void*)fd.frm_addr, fd.frm_len);
+		NetReceive(NetRxPackets[0], receive_fd.frm_len);
 
 		return 0;
-	}
-	else {
+	} else {
 		hieth_trace(7, "hw rx timeout.");
 	}
 

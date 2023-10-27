@@ -23,3 +23,6 @@ void reset_mac_interface_dual(int val)
 	writel(0, SYS_CTRL_BASE + TOE_RST);
 }
 
+void stmmac_mac_core_reset(void)
+{
+}

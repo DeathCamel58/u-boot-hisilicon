@@ -30,16 +30,16 @@ extern "C"{
 #define VOU_GAMM_COEF_ROW   32
 #define VOU_GAMM_COEF_COL   16
 
-#define VOU_ZOOM_COEF_ITEM   18 /* Ã¿×éËõ·ÅÏµÊýÓÐ18Ïî */
-#define VOU_ZOOM_COEF_MAXTAP 8  /* Ã¿Ïî×î´ó½×ÊýÊÇ8½× */
+#define VOU_ZOOM_COEF_ITEM   18 /* Ã¿ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ïµï¿½ï¿½ï¿½ï¿½18ï¿½ï¿½ */
+#define VOU_ZOOM_COEF_MAXTAP 8  /* Ã¿ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½8ï¿½ï¿½ */
 
 #define VOU_ACC_COEF_NUM (256)
 
 /*
-    ÑÏÖØ×¢Òâ:
+    ï¿½ï¿½ï¿½ï¿½×¢ï¿½ï¿½:
 
-    ¼Ä´æÆ÷ÉÏ»ñÈ¡µÄ±ÈÂÊ ratio = ÊäÈë·Ö±æÂÊ/Êä³ö·Ö±æÂÊ
-    ¶øËã·¨¸ø³öµÄ±ÈÂÊ   ratio = Êä³ö·Ö±æÂÊ/ÊäÈë·Ö±æÂÊ    (HERE USE)
+    ï¿½Ä´ï¿½ï¿½ï¿½ï¿½Ï»ï¿½È¡ï¿½Ä±ï¿½ï¿½ï¿½ ratio = ï¿½ï¿½ï¿½ï¿½Ö±ï¿½ï¿½ï¿½/ï¿½ï¿½ï¿½ï¿½Ö±ï¿½ï¿½ï¿½
+    ï¿½ï¿½ï¿½ã·¨ï¿½ï¿½ï¿½ï¿½ï¿½Ä±ï¿½ï¿½ï¿½   ratio = ï¿½ï¿½ï¿½ï¿½Ö±ï¿½ï¿½ï¿½/ï¿½ï¿½ï¿½ï¿½Ö±ï¿½ï¿½ï¿½    (HERE USE)
 
     SO UGLY!!!
 */
@@ -66,8 +66,8 @@ typedef enum hiVOU_ZOOM_TAP_E
     VOU_ZOOM_TAP_BUTT
 } VOU_ZOOM_TAP_E;
 
-/* ¶ÔÎ»ÓòµÄ¸üÐ¡²ð·Ö£¬Ò»·½ÃæÊÇÎªÁËÂú×ã10bitÄÚ´æÅÅ²¼£»
-   ÁíÒ»·½Ãæ£¬Î»ÓòÈç¹û½øÐÐ¿çint²Ù×÷£¬»á³öÏÖ´íÎó¡£
+/* ï¿½ï¿½Î»ï¿½ï¿½Ä¸ï¿½Ð¡ï¿½ï¿½Ö£ï¿½Ò»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Îªï¿½ï¿½ï¿½ï¿½ï¿½ï¿½10bitï¿½Ú´ï¿½ï¿½Å²ï¿½ï¿½ï¿½
+   ï¿½ï¿½Ò»ï¿½ï¿½ï¿½æ£¬Î»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ð¿ï¿½intï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ö´ï¿½ï¿½ï¿½
  */
 typedef struct hiVO_ZOOM_BIT_S
 {
